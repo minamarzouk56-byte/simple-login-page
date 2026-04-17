@@ -10,7 +10,6 @@ interface AuthContextValue {
   permissions: Set<AppPermission>;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   hasPermission: (p: AppPermission) => boolean;
   refreshPermissions: () => Promise<void>;
@@ -39,12 +38,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [user?.id, loadUserData]);
 
   useEffect(() => {
-    // Listener FIRST, then session check (avoids race conditions)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       if (newSession?.user) {
-        // Defer to avoid deadlock inside auth callback
         setTimeout(() => loadUserData(newSession.user.id), 0);
       } else {
         setProfile(null);
@@ -67,16 +64,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error: error?.message ?? null };
   };
 
-  const signUp: AuthContextValue["signUp"] = async (email, password, fullName) => {
-    const redirectUrl = `${window.location.origin}/`;
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: redirectUrl, data: { full_name: fullName } },
-    });
-    return { error: error?.message ?? null };
-  };
-
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -88,7 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ session, user, profile, permissions, loading, signIn, signUp, signOut, hasPermission, refreshPermissions }}
+      value={{ session, user, profile, permissions, loading, signIn, signOut, hasPermission, refreshPermissions }}
     >
       {children}
     </AuthContext.Provider>
