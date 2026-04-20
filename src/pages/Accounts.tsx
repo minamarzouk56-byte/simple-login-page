@@ -149,6 +149,7 @@ const Accounts = () => {
                   onAddChild={openNewDialog}
                   onEdit={setEditTarget}
                   onDelete={setDeleteTarget}
+                  onStatement={setStatementTarget}
                   canCreate={canCreate}
                   canEdit={canEdit}
                   canDelete={canDelete}
@@ -197,6 +198,12 @@ const Accounts = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AccountStatementDialog
+        account={statementTarget}
+        allAccounts={accounts}
+        onOpenChange={(o) => !o && setStatementTarget(null)}
+      />
     </div>
   );
 };
