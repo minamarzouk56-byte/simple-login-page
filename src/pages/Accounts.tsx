@@ -44,8 +44,13 @@ const Accounts = () => {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [parentForNew, setParentForNew] = useState<Account | null>(null);
+  const [editTarget, setEditTarget] = useState<Account | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Account | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const canCreate = hasPermission("accounts.create");
+  const canEdit = hasPermission("accounts.edit");
+  const canDelete = hasPermission("accounts.delete");
 
   const load = async () => {
     setLoading(true);
@@ -79,6 +84,26 @@ const Accounts = () => {
   const openNewDialog = (parent: Account | null) => {
     setParentForNew(parent);
     setDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    const { error } = await supabase.from("accounts").delete().eq("id", deleteTarget.id);
+    setDeleting(false);
+    if (error) {
+      toast({
+        title: "تعذر حذف الحساب",
+        description: error.message.includes("violates")
+          ? "لا يمكن حذف حساب يحتوي على حسابات فرعية أو حركات."
+          : error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+    toast({ title: "تم حذف الحساب" });
+    setDeleteTarget(null);
+    load();
   };
 
   return (
