@@ -144,7 +144,11 @@ const Accounts = () => {
                   expanded={expanded}
                   onToggle={toggle}
                   onAddChild={openNewDialog}
+                  onEdit={setEditTarget}
+                  onDelete={setDeleteTarget}
                   canCreate={canCreate}
+                  canEdit={canEdit}
+                  canDelete={canDelete}
                   depth={0}
                 />
               ))}
@@ -160,6 +164,36 @@ const Accounts = () => {
         currencies={currencies}
         onCreated={load}
       />
+
+      <EditAccountDialog
+        account={editTarget}
+        onOpenChange={(o) => !o && setEditTarget(null)}
+        currencies={currencies}
+        onSaved={load}
+      />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف الحساب</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل تريد حذف الحساب <strong className="text-foreground">{deleteTarget?.name}</strong>؟
+              لا يمكن التراجع. لن يُسمح بالحذف إذا كان للحساب فروع أو حركات.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting && <Loader2 className="ms-2 h-4 w-4 animate-spin" />}
+              تأكيد الحذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
