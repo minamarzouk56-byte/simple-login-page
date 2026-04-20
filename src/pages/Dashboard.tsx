@@ -7,12 +7,13 @@ import { Network, BookOpen, Users, Wallet } from "lucide-react";
 interface Stats {
   accounts: number;
   entries: number;
-  partners: number;
+  customers: number;
+  suppliers: number;
 }
 
 const Dashboard = () => {
   const { profile, hasPermission } = useAuth();
-  const [stats, setStats] = useState<Stats>({ accounts: 0, entries: 0, partners: 0 });
+  const [stats, setStats] = useState<Stats>({ accounts: 0, entries: 0, customers: 0, suppliers: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,14 +25,18 @@ const Dashboard = () => {
         hasPermission("journal.view")
           ? supabase.from("journal_entries").select("id", { count: "exact", head: true })
           : Promise.resolve({ count: 0 }),
-        hasPermission("partners.view")
-          ? supabase.from("partners").select("id", { count: "exact", head: true })
+        hasPermission("customers.view")
+          ? supabase.from("customers").select("id", { count: "exact", head: true })
+          : Promise.resolve({ count: 0 }),
+        hasPermission("suppliers.view")
+          ? supabase.from("suppliers").select("id", { count: "exact", head: true })
           : Promise.resolve({ count: 0 }),
       ]);
       setStats({
         accounts: queries[0].count ?? 0,
         entries: queries[1].count ?? 0,
-        partners: queries[2].count ?? 0,
+        customers: queries[2].count ?? 0,
+        suppliers: queries[3].count ?? 0,
       });
       setLoading(false);
     };
@@ -52,7 +57,8 @@ const Dashboard = () => {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard icon={Network} label="حسابات" value={stats.accounts} loading={loading} accent="primary" />
         <StatCard icon={BookOpen} label="قيود يومية" value={stats.entries} loading={loading} accent="accent" />
-        <StatCard icon={Users} label="عملاء وموردين" value={stats.partners} loading={loading} accent="success" />
+        <StatCard icon={Users} label="العملاء" value={stats.customers} loading={loading} accent="success" />
+        <StatCard icon={Users} label="الموردين" value={stats.suppliers} loading={loading} accent="success" />
       </div>
 
       <Card className="shadow-soft">

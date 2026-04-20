@@ -98,10 +98,16 @@ const PERMISSION_GROUPS: PermissionGroup[] = [
     children: ["journal.create", "journal.edit", "journal.delete"],
   },
   {
-    key: "partners",
-    label: "العملاء والموردين",
-    view: "partners.view",
-    children: ["partners.create", "partners.edit", "partners.delete"],
+    key: "customers",
+    label: "العملاء",
+    view: "customers.view",
+    children: ["customers.create", "customers.edit", "customers.delete"],
+  },
+  {
+    key: "suppliers",
+    label: "الموردين",
+    view: "suppliers.view",
+    children: ["suppliers.create", "suppliers.edit", "suppliers.delete"],
   },
   {
     key: "reports",
