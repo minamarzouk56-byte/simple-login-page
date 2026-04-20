@@ -40,6 +40,7 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
   const { toast } = useToast();
   const [items, setItems] = useState<Customer[]>([]);
   const [movements, setMovements] = useState<Record<string, number>>({});
+  const [accountsMap, setAccountsMap] = useState<Record<string, { code: string; name: string }>>({});
   const [currencies, setCurrencies] = useState<Record<string, { name_ar: string; symbol: string }>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -59,9 +60,10 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
 
   const load = async () => {
     setLoading(true);
-    const [{ data, error }, { data: curs }] = await Promise.all([
+    const [{ data, error }, { data: curs }, { data: accs }] = await Promise.all([
       supabase.from(table).select("*").order("code"),
       supabase.from("currencies").select("code, name_ar, symbol"),
+      supabase.from("accounts").select("id, code, name"),
     ]);
     if (error) {
       toast({ title: "فشل التحميل", description: error.message, variant: "destructive" });
@@ -73,6 +75,9 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
     const cmap: Record<string, { name_ar: string; symbol: string }> = {};
     (curs ?? []).forEach((c: any) => { cmap[c.code] = { name_ar: c.name_ar, symbol: c.symbol }; });
     setCurrencies(cmap);
+    const amap: Record<string, { code: string; name: string }> = {};
+    (accs ?? []).forEach((a: any) => { amap[a.id] = { code: a.code, name: a.name }; });
+    setAccountsMap(amap);
 
     const ids = list.map((p) => p.id);
     if (ids.length) {
@@ -180,6 +185,7 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
                   <tr>
                     <th className="px-4 py-3 text-right font-medium">الكود</th>
                     <th className="px-4 py-3 text-right font-medium">الاسم</th>
+                    <th className="px-4 py-3 text-right font-medium">حساب الشجرة المرتبط</th>
                     <th className="px-4 py-3 text-center font-medium">عملة الحساب</th>
                     <th className="px-4 py-3 text-end font-medium">حد الائتمان</th>
                     <th className="px-4 py-3 text-end font-medium">الرصيد</th>
@@ -194,6 +200,18 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
                       <tr key={p.id} className="hover:bg-muted/30 transition-base">
                         <td className="px-4 py-3 font-mono text-xs tabular-nums text-muted-foreground">{p.code}</td>
                         <td className="px-4 py-3 font-medium">{p.name}</td>
+                        <td className="px-4 py-3">
+                          {p.account_id && accountsMap[p.account_id] ? (
+                            <span className="inline-flex items-center gap-2">
+                              <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                                {accountsMap[p.account_id].code}
+                              </span>
+                              <span className="text-sm">{accountsMap[p.account_id].name}</span>
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">— غير مرتبط —</span>
+                          )}
+                        </td>
                         <td className="px-4 py-3 text-center">
                           <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2 py-0.5 text-xs font-medium">
                             <span className="font-mono text-muted-foreground">{p.currency}</span>
