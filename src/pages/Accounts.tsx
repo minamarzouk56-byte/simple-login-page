@@ -234,6 +234,7 @@ interface TreeRowProps {
   onAddChild: (parent: Account) => void;
   onEdit: (account: Account) => void;
   onDelete: (account: Account) => void;
+  onStatement: (account: Account) => void;
   canCreate: boolean;
   canEdit: boolean;
   canDelete: boolean;
@@ -247,6 +248,7 @@ const TreeRow = ({
   onAddChild,
   onEdit,
   onDelete,
+  onStatement,
   canCreate,
   canEdit,
   canDelete,
@@ -255,14 +257,19 @@ const TreeRow = ({
   const isOpen = expanded.has(node.id);
   const hasChildren = node.children.length > 0;
   const showMenu = canCreate || canEdit || canDelete;
+  const style = ACCOUNT_TYPE_STYLES[node.type];
 
   return (
     <li>
       <div
         className={cn(
-          "group flex items-center gap-2 py-2.5 pe-2 transition-base hover:bg-muted/40 rounded-md",
+          "group flex items-center gap-2 py-2.5 pe-2 transition-base hover:bg-muted/40 rounded-md border-s-[3px]",
         )}
-        style={{ paddingInlineStart: `${depth * 24 + 12}px` }}
+        style={{
+          paddingInlineStart: `${depth * 24 + 12}px`,
+          borderInlineStartColor: `hsl(var(${style.var}) / ${0.85 - depth * 0.18})`,
+          backgroundColor: depth === 0 ? `hsl(var(${style.var}) / 0.05)` : undefined,
+        }}
       >
         <button
           type="button"
@@ -276,19 +283,53 @@ const TreeRow = ({
           {hasChildren ? (
             isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />
           ) : (
-            <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
+            <span
+              className="h-1.5 w-1.5 rounded-full"
+              style={{ backgroundColor: `hsl(var(${style.var}) / 0.6)` }}
+            />
           )}
         </button>
 
         <div className="flex-1 min-w-0 flex items-center gap-2">
-          <span className="truncate font-medium text-foreground">{node.name}</span>
-          <Badge variant="outline" className="font-mono text-xs tabular-nums shrink-0">
+          <span
+            className="truncate font-medium"
+            style={{ color: depth === 0 ? `hsl(var(${style.var}))` : undefined }}
+          >
+            {node.name}
+          </span>
+          <Badge
+            variant="outline"
+            className="font-mono text-xs tabular-nums shrink-0"
+            style={{
+              color: `hsl(var(${style.var}))`,
+              borderColor: `hsl(var(${style.var}) / 0.4)`,
+              backgroundColor: `hsl(var(${style.var}) / 0.08)`,
+            }}
+          >
             {node.code}
           </Badge>
-          <Badge variant="secondary" className="text-xs hidden sm:inline-flex shrink-0">
+          <Badge
+            className="text-xs hidden sm:inline-flex shrink-0 border"
+            style={{
+              color: `hsl(var(${style.var}))`,
+              backgroundColor: `hsl(var(${style.var}) / 0.1)`,
+              borderColor: `hsl(var(${style.var}) / 0.25)`,
+            }}
+          >
             {ACCOUNT_TYPE_LABELS_AR[node.type]}
           </Badge>
         </div>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onStatement(node)}
+          className="h-8 gap-1.5 text-xs opacity-70 hover:opacity-100 hover:bg-primary/10 hover:text-primary"
+          aria-label="كشف حساب"
+        >
+          <FileText className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">كشف حساب</span>
+        </Button>
 
         {showMenu && (
           <DropdownMenu>
@@ -305,13 +346,13 @@ const TreeRow = ({
             <DropdownMenuContent align="end" className="w-44">
               {canCreate && (
                 <DropdownMenuItem onClick={() => onAddChild(node)}>
-                  <Plus className="h-4 w-4 ms-2" />
+                  <Plus className="h-4 w-4" />
                   إضافة حساب فرعي
                 </DropdownMenuItem>
               )}
               {canEdit && (
                 <DropdownMenuItem onClick={() => onEdit(node)}>
-                  <Pencil className="h-4 w-4 ms-2" />
+                  <Pencil className="h-4 w-4" />
                   تعديل
                 </DropdownMenuItem>
               )}
@@ -321,7 +362,7 @@ const TreeRow = ({
                   onClick={() => onDelete(node)}
                   className="text-destructive focus:text-destructive focus:bg-destructive/10"
                 >
-                  <Trash2 className="h-4 w-4 ms-2" />
+                  <Trash2 className="h-4 w-4" />
                   حذف
                 </DropdownMenuItem>
               )}
@@ -340,6 +381,7 @@ const TreeRow = ({
               onAddChild={onAddChild}
               onEdit={onEdit}
               onDelete={onDelete}
+              onStatement={onStatement}
               canCreate={canCreate}
               canEdit={canEdit}
               canDelete={canDelete}
