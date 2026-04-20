@@ -394,6 +394,13 @@ const TreeRow = ({
           >
             {ACCOUNT_TYPE_LABELS_AR[node.type]}
           </Badge>
+          <Badge
+            variant="outline"
+            className="text-xs shrink-0 font-mono tabular-nums bg-muted/40"
+            title={`عملة الحساب: ${node.currency}`}
+          >
+            {node.currency}
+          </Badge>
         </div>
 
         <Button
