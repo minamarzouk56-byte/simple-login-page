@@ -180,7 +180,7 @@ const ReportSection = ({
           <div key={i.account.id} className="flex items-center justify-between py-1.5 text-sm">
             <span className="text-foreground">
               <span className="font-mono text-xs text-muted-foreground ms-2">{i.account.code}</span>
-              {i.account.name_ar}
+              {i.account.name}
             </span>
             <span className="tabular-nums">{i.balance.toLocaleString("ar-EG", { minimumFractionDigits: 2 })}</span>
           </div>
