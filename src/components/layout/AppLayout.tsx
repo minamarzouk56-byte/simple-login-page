@@ -78,25 +78,6 @@ export const AppLayout = () => {
           </ul>
         </nav>
 
-        <div className="border-t border-sidebar-border p-3">
-          <div className="mb-2 flex items-center gap-3 rounded-lg px-3 py-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">
-              {(profile?.full_name ?? "?").charAt(0)}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-sidebar-foreground">
-                {profile?.full_name ?? "مستخدم"}
-              </p>
-              <p className="text-xs text-sidebar-foreground/60">
-                {profile?.is_admin ? "مسؤول" : "مستخدم"}
-              </p>
-            </div>
-          </div>
-          <Button variant="ghost" size="sm" onClick={signOut} className="w-full justify-start gap-2 text-sidebar-foreground/80">
-            <LogOut className="h-4 w-4" />
-            تسجيل الخروج
-          </Button>
-        </div>
       </aside>
 
       {/* Main */}
