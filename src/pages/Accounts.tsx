@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -232,6 +233,7 @@ const Accounts = () => {
 
       <EditAccountDialog
         account={editTarget}
+        allAccounts={accounts}
         onOpenChange={(o) => !o && setEditTarget(null)}
         currencies={currencies}
         onSaved={load}
@@ -498,13 +500,17 @@ const NewAccountDialog = ({
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // If parent currency is set and is not "GEN", child must inherit it
+  const lockedCurrency = parent && parent.currency !== "GEN" ? parent.currency : null;
+
   useEffect(() => {
     if (open) {
       setName("");
       setNotes("");
       setType(parent?.type ?? "asset");
-      setCurrency(parent?.currency ?? "EGP");
+      setCurrency(lockedCurrency ?? parent?.currency ?? "EGP");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, parent]);
 
   const handleSave = async () => {
@@ -559,15 +565,31 @@ const NewAccountDialog = ({
           )}
 
           <div className="space-y-2">
-            <Label>العملة</Label>
-            <Select value={currency} onValueChange={setCurrency}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {currencies.map((c) => (
-                  <SelectItem key={c.code} value={c.code}>{c.name_ar} ({c.code})</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>
+              العملة {lockedCurrency && <span className="text-xs text-muted-foreground">(موروثة من الحساب الأب)</span>}
+            </Label>
+            <SearchableSelect
+              value={currency}
+              onChange={setCurrency}
+              disabled={!!lockedCurrency}
+              placeholder="اختر العملة..."
+              searchPlaceholder="ابحث عن العملة..."
+              options={currencies.map((c) => ({
+                value: c.code,
+                label: `${c.name_ar} (${c.code})`,
+                keywords: `${c.code} ${c.name_ar}`,
+              }))}
+            />
+            {lockedCurrency && (
+              <p className="text-xs text-muted-foreground">
+                الحساب الأب بعملة {lockedCurrency}، لذلك الحساب الفرعي لازم يكون بنفس العملة.
+              </p>
+            )}
+            {!lockedCurrency && parent?.currency === "GEN" && (
+              <p className="text-xs text-muted-foreground">
+                الحساب الأب بعملة "عام"، يمكنك اختيار أي عملة للحساب الفرعي.
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -593,11 +615,13 @@ const NewAccountDialog = ({
 
 const EditAccountDialog = ({
   account,
+  allAccounts,
   onOpenChange,
   currencies,
   onSaved,
 }: {
   account: Account | null;
+  allAccounts: Account[];
   onOpenChange: (v: boolean) => void;
   currencies: Currency[];
   onSaved: () => void;
@@ -607,6 +631,9 @@ const EditAccountDialog = ({
   const [currency, setCurrency] = useState("EGP");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const parentAcc = account?.parent_id ? allAccounts.find((a) => a.id === account.parent_id) ?? null : null;
+  const lockedCurrency = parentAcc && parentAcc.currency !== "GEN" ? parentAcc.currency : null;
 
   useEffect(() => {
     if (account) {
@@ -657,15 +684,26 @@ const EditAccountDialog = ({
             <Input id="edit-acc-name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>العملة</Label>
-            <Select value={currency} onValueChange={setCurrency}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {currencies.map((c) => (
-                  <SelectItem key={c.code} value={c.code}>{c.name_ar} ({c.code})</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>
+              العملة {lockedCurrency && <span className="text-xs text-muted-foreground">(موروثة من الحساب الأب)</span>}
+            </Label>
+            <SearchableSelect
+              value={currency}
+              onChange={setCurrency}
+              disabled={!!lockedCurrency}
+              placeholder="اختر العملة..."
+              searchPlaceholder="ابحث عن العملة..."
+              options={currencies.map((c) => ({
+                value: c.code,
+                label: `${c.name_ar} (${c.code})`,
+                keywords: `${c.code} ${c.name_ar}`,
+              }))}
+            />
+            {lockedCurrency && (
+              <p className="text-xs text-muted-foreground">
+                لا يمكن تغيير العملة لأن الحساب الأب بعملة {lockedCurrency}.
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit-acc-notes">ملاحظات</Label>
