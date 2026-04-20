@@ -27,7 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronLeft, Plus, Loader2, FolderTree, MoreHorizontal, Pencil, Trash2, FileText } from "lucide-react";
+import { ChevronDown, ChevronLeft, Plus, Loader2, FolderTree, MoreHorizontal, Pencil, Trash2, FileText, Search, X } from "lucide-react";
 import { ACCOUNT_TYPE_LABELS_AR, type Account, type AccountType, type Currency } from "@/lib/finhub-types";
 import { ACCOUNT_TYPE_STYLES } from "@/components/accounts/account-styles";
 import { AccountStatementDialog } from "@/components/accounts/AccountStatementDialog";
@@ -44,6 +44,7 @@ const Accounts = () => {
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [parentForNew, setParentForNew] = useState<Account | null>(null);
   const [editTarget, setEditTarget] = useState<Account | null>(null);
@@ -65,8 +66,8 @@ const Accounts = () => {
       toast({ title: "خطأ في تحميل الحسابات", description: error.message, variant: "destructive" });
     } else {
       setAccounts((accs ?? []) as Account[]);
-      // Auto-expand level 1
-      setExpanded(new Set(((accs ?? []) as Account[]).filter((a) => a.level === 1).map((a) => a.id)));
+      // Default: all accounts collapsed
+      setExpanded(new Set());
     }
     setCurrencies((curs ?? []) as Currency[]);
     setLoading(false);
@@ -75,6 +76,41 @@ const Accounts = () => {
   useEffect(() => { load(); }, []);
 
   const tree = useMemo(() => buildTree(accounts), [accounts]);
+
+  // Filter tree by search query (matches name or code), keeping ancestors
+  const { filteredTree, autoExpand } = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return { filteredTree: tree, autoExpand: new Set<string>() };
+
+    const matchIds = new Set<string>();
+    const ancestors = new Set<string>();
+    const parentMap = new Map<string, string | null>();
+    accounts.forEach((a) => parentMap.set(a.id, a.parent_id));
+
+    accounts.forEach((a) => {
+      if (a.name.toLowerCase().includes(q) || a.code.toLowerCase().includes(q)) {
+        matchIds.add(a.id);
+        let p = parentMap.get(a.id) ?? null;
+        while (p) {
+          ancestors.add(p);
+          p = parentMap.get(p) ?? null;
+        }
+      }
+    });
+
+    const keep = new Set<string>([...matchIds, ...ancestors]);
+    const filterRec = (nodes: TreeNode[]): TreeNode[] =>
+      nodes
+        .filter((n) => keep.has(n.id))
+        .map((n) => ({ ...n, children: filterRec(n.children) }));
+
+    return { filteredTree: filterRec(tree), autoExpand: ancestors };
+  }, [tree, accounts, search]);
+
+  const effectiveExpanded = useMemo(() => {
+    if (!search.trim()) return expanded;
+    return new Set<string>([...expanded, ...autoExpand]);
+  }, [expanded, autoExpand, search]);
 
   const toggle = (id: string) => {
     setExpanded((prev) => {
@@ -130,6 +166,26 @@ const Accounts = () => {
 
       <Card className="shadow-soft">
         <CardContent className="p-2">
+          <div className="relative p-2 pb-3">
+            <Search className="absolute end-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="ابحث باسم الحساب أو الكود…"
+              className="pe-9 ps-9"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute start-5 top-1/2 -translate-y-1/2 h-5 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted"
+                aria-label="مسح البحث"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
           {loading ? (
             <div className="flex items-center justify-center py-12 text-muted-foreground">
               <Loader2 className="h-6 w-6 animate-spin" />
@@ -138,13 +194,17 @@ const Accounts = () => {
             <div className="py-12 text-center text-muted-foreground">
               لا توجد حسابات. شغّل ملف SQL أولاً ليتم زرع الحسابات الجذرية الـ 5.
             </div>
+          ) : filteredTree.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground">
+              لا توجد نتائج مطابقة لـ <strong className="text-foreground">"{search}"</strong>
+            </div>
           ) : (
             <ul className="divide-y divide-border">
-              {tree.map((node) => (
+              {filteredTree.map((node) => (
                 <TreeRow
                   key={node.id}
                   node={node}
-                  expanded={expanded}
+                  expanded={effectiveExpanded}
                   onToggle={toggle}
                   onAddChild={openNewDialog}
                   onEdit={setEditTarget}
@@ -154,6 +214,7 @@ const Accounts = () => {
                   canEdit={canEdit}
                   canDelete={canDelete}
                   depth={0}
+                  highlight={search.trim().toLowerCase()}
                 />
               ))}
             </ul>
@@ -239,7 +300,21 @@ interface TreeRowProps {
   canEdit: boolean;
   canDelete: boolean;
   depth: number;
+  highlight?: string;
 }
+
+const HighlightText = ({ text, query }: { text: string; query?: string }) => {
+  if (!query) return <>{text}</>;
+  const idx = text.toLowerCase().indexOf(query);
+  if (idx === -1) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="bg-warning/30 text-foreground rounded px-0.5">{text.slice(idx, idx + query.length)}</mark>
+      {text.slice(idx + query.length)}
+    </>
+  );
+};
 
 const TreeRow = ({
   node,
@@ -253,6 +328,7 @@ const TreeRow = ({
   canEdit,
   canDelete,
   depth,
+  highlight,
 }: TreeRowProps) => {
   const isOpen = expanded.has(node.id);
   const hasChildren = node.children.length > 0;
@@ -295,7 +371,7 @@ const TreeRow = ({
             className="truncate font-medium"
             style={{ color: depth === 0 ? `hsl(var(${style.var}))` : undefined }}
           >
-            {node.name}
+            <HighlightText text={node.name} query={highlight} />
           </span>
           <Badge
             variant="outline"
@@ -306,7 +382,7 @@ const TreeRow = ({
               backgroundColor: `hsl(var(${style.var}) / 0.08)`,
             }}
           >
-            {node.code}
+            <HighlightText text={node.code} query={highlight} />
           </Badge>
           <Badge
             className="text-xs hidden sm:inline-flex shrink-0 border"
@@ -386,6 +462,7 @@ const TreeRow = ({
               canEdit={canEdit}
               canDelete={canDelete}
               depth={depth + 1}
+              highlight={highlight}
             />
           ))}
         </ul>
