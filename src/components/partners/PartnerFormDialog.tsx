@@ -72,10 +72,7 @@ export const PartnerFormDialog = ({ open, onOpenChange, partner, kind, onSaved }
   }, [accounts]);
 
   const eligibleAccounts = useMemo(
-    () =>
-      accounts.filter(
-        (a) => leafAccountIds.has(a.id) && (a.currency === currency || a.currency === "GEN"),
-      ),
+    () => accounts.filter((a) => leafAccountIds.has(a.id) && a.currency === currency),
     [accounts, leafAccountIds, currency],
   );
 
