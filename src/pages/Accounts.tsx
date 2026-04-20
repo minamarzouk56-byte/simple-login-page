@@ -27,7 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronLeft, Plus, Loader2, FolderTree, MoreHorizontal, Pencil, Trash2, FileText } from "lucide-react";
+import { ChevronDown, ChevronLeft, Plus, Loader2, FolderTree, MoreHorizontal, Pencil, Trash2, FileText, Search, X } from "lucide-react";
 import { ACCOUNT_TYPE_LABELS_AR, type Account, type AccountType, type Currency } from "@/lib/finhub-types";
 import { ACCOUNT_TYPE_STYLES } from "@/components/accounts/account-styles";
 import { AccountStatementDialog } from "@/components/accounts/AccountStatementDialog";
@@ -44,6 +44,7 @@ const Accounts = () => {
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [parentForNew, setParentForNew] = useState<Account | null>(null);
   const [editTarget, setEditTarget] = useState<Account | null>(null);
@@ -65,8 +66,8 @@ const Accounts = () => {
       toast({ title: "خطأ في تحميل الحسابات", description: error.message, variant: "destructive" });
     } else {
       setAccounts((accs ?? []) as Account[]);
-      // Auto-expand level 1
-      setExpanded(new Set(((accs ?? []) as Account[]).filter((a) => a.level === 1).map((a) => a.id)));
+      // Default: all accounts collapsed
+      setExpanded(new Set());
     }
     setCurrencies((curs ?? []) as Currency[]);
     setLoading(false);
