@@ -199,10 +199,10 @@ export const AccountStatementDialog = ({ account, allAccounts, onOpenChange }: P
                         <TableCell><Badge variant="secondary" className="text-xs">{r.type_label}</Badge></TableCell>
                         <TableCell className="font-mono text-xs">{r.currency}</TableCell>
                         <TableCell className="text-end tabular-nums">{r.exchange_rate.toFixed(4)}</TableCell>
-                        <TableCell className="text-end tabular-nums text-emerald-700 dark:text-emerald-400">
+                        <TableCell className="text-end tabular-nums text-success">
                           {r.debit > 0 ? fmt(r.debit) : "-"}
                         </TableCell>
-                        <TableCell className="text-end tabular-nums text-red-600 dark:text-red-400">
+                        <TableCell className="text-end tabular-nums text-destructive">
                           {r.credit > 0 ? fmt(r.credit) : "-"}
                         </TableCell>
                         <TableCell className="text-end tabular-nums font-medium">{fmt(running)}</TableCell>
