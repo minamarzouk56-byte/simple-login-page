@@ -91,7 +91,7 @@ export const AppLayout = () => {
     return true;
   };
 
-  const visibleNodes: NavNode[] = NAV_ITEMS.flatMap((node) => {
+  const visibleNodes: NavNode[] = NAV_ITEMS.flatMap<NavNode>((node) => {
     if (isGroup(node)) {
       const children = node.children.filter(canSee);
       if (children.length === 0) return [];
