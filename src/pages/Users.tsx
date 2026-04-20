@@ -85,7 +85,7 @@ const Users = () => {
               <ul className="space-y-1">
                 {profiles.map((p) => {
                   const isSelected = selectedUser?.id === p.id;
-                  const permCount = permsByUser.get(p.id)?.size ?? 0;
+                  const permCount = permsByUser.get(p.user_id)?.size ?? 0;
                   return (
                     <li key={p.id}>
                       <button
@@ -131,20 +131,20 @@ const Users = () => {
                     <div>
                       <h3 className="font-display text-lg font-bold">{selectedUser.full_name}</h3>
                       <p className="text-xs text-muted-foreground">
-                        {permsByUser.get(selectedUser.id)?.size ?? 0} من {ALL_PERMISSIONS.length} صلاحية
+                        {permsByUser.get(selectedUser.user_id)?.size ?? 0} من {ALL_PERMISSIONS.length} صلاحية
                       </p>
                     </div>
                     {saving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                   </div>
                   <ul className="grid gap-1 sm:grid-cols-2">
                     {ALL_PERMISSIONS.map((perm) => {
-                      const checked = permsByUser.get(selectedUser.id)?.has(perm) ?? false;
+                      const checked = permsByUser.get(selectedUser.user_id)?.has(perm) ?? false;
                       return (
                         <li key={perm}>
                           <label className="flex items-center gap-3 rounded-md px-3 py-2.5 hover:bg-muted/40 cursor-pointer transition-base">
                             <Checkbox
                               checked={checked}
-                              onCheckedChange={(v) => togglePerm(selectedUser.id, perm, !!v)}
+                              onCheckedChange={(v) => togglePerm(selectedUser.user_id, perm, !!v)}
                               disabled={saving}
                             />
                             <span className="text-sm flex-1">{PERMISSION_LABELS_AR[perm]}</span>
