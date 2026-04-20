@@ -48,6 +48,8 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
   const [currencies, setCurrencies] = useState<Record<string, { name_ar: string; symbol: string }>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("code");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Customer | null>(null);
