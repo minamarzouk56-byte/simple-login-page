@@ -4,122 +4,123 @@
 
 /* =====================================================
    FinHub Design System — Arabic, RTL, Financial
+   Palette: Emerald (Tailwind)
+   Typography: Rubik
    All colors MUST be HSL.
-   Aesthetic: editorial, calm, confident — built for numbers.
    ===================================================== */
 
 @layer base {
   :root {
-    /* Surfaces — warm off-white paper */
-    --background: 38 30% 98%;
-    --foreground: 220 25% 12%;
+    /* Surfaces — clean, slightly warm white */
+    --background: 0 0% 100%;
+    --foreground: 158 30% 8%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 12%;
+    --card-foreground: 158 30% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 12%;
+    --popover-foreground: 158 30% 8%;
 
-    /* Brand — deep teal, trustworthy and distinct from generic blue */
-    --primary: 186 78% 22%;
-    --primary-foreground: 38 30% 98%;
-    --primary-glow: 186 65% 38%;
+    /* Brand — Tailwind Emerald (emerald-600 / 700 / 500) */
+    --primary: 161 94% 24%;            /* emerald-700 */
+    --primary-foreground: 152 81% 96%; /* emerald-50  */
+    --primary-glow: 160 84% 39%;       /* emerald-500 */
 
-    --secondary: 38 25% 94%;
-    --secondary-foreground: 220 25% 18%;
+    --secondary: 152 35% 96%;
+    --secondary-foreground: 158 30% 12%;
 
-    --muted: 38 20% 95%;
-    --muted-foreground: 220 12% 42%;
+    --muted: 150 20% 96%;
+    --muted-foreground: 158 10% 42%;
 
-    --accent: 35 85% 55%;        /* warm amber accent for highlights */
-    --accent-foreground: 220 30% 12%;
+    --accent: 152 76% 92%;             /* emerald-100 — soft hover surface */
+    --accent-foreground: 161 94% 18%;
 
-    --destructive: 358 72% 48%;
-    --destructive-foreground: 38 30% 98%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --success: 152 60% 32%;
-    --success-foreground: 38 30% 98%;
+    --success: 160 84% 32%;
+    --success-foreground: 0 0% 100%;
 
-    --warning: 35 92% 50%;
-    --warning-foreground: 220 30% 12%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 158 30% 8%;
 
-    --border: 38 20% 88%;
-    --input: 38 20% 90%;
-    --ring: 186 78% 28%;
+    --border: 150 16% 90%;
+    --input: 150 16% 90%;
+    --ring: 161 94% 30%;
 
     --radius: 0.625rem;
 
-    /* Sidebar — slightly darker paper */
-    --sidebar-background: 38 22% 96%;
-    --sidebar-foreground: 220 22% 22%;
-    --sidebar-primary: 186 78% 22%;
-    --sidebar-primary-foreground: 38 30% 98%;
-    --sidebar-accent: 38 28% 91%;
-    --sidebar-accent-foreground: 186 78% 22%;
-    --sidebar-border: 38 20% 86%;
-    --sidebar-ring: 186 78% 28%;
+    /* Sidebar — slightly tinted surface */
+    --sidebar-background: 152 30% 98%;
+    --sidebar-foreground: 158 22% 24%;
+    --sidebar-primary: 161 94% 24%;
+    --sidebar-primary-foreground: 152 81% 96%;
+    --sidebar-accent: 152 60% 94%;
+    --sidebar-accent-foreground: 161 94% 18%;
+    --sidebar-border: 150 16% 88%;
+    --sidebar-ring: 161 94% 30%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(186 78% 22%), hsl(186 65% 38%));
-    --gradient-subtle: linear-gradient(180deg, hsl(38 30% 99%), hsl(38 25% 95%));
-    --gradient-accent: linear-gradient(135deg, hsl(35 85% 55%), hsl(28 88% 58%));
+    --gradient-primary: linear-gradient(135deg, hsl(161 94% 24%), hsl(160 84% 39%));
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(150 30% 97%));
+    --gradient-accent: linear-gradient(135deg, hsl(160 84% 39%), hsl(152 76% 50%));
 
-    /* Shadows — soft, paper-like */
-    --shadow-sm: 0 1px 2px 0 hsl(220 25% 12% / 0.04);
-    --shadow-md: 0 2px 8px -2px hsl(220 25% 12% / 0.08), 0 1px 3px -1px hsl(220 25% 12% / 0.06);
-    --shadow-lg: 0 12px 32px -8px hsl(220 25% 12% / 0.12), 0 4px 12px -4px hsl(220 25% 12% / 0.08);
-    --shadow-elegant: 0 20px 50px -20px hsl(186 78% 22% / 0.25);
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(158 30% 8% / 0.04);
+    --shadow-md: 0 2px 8px -2px hsl(158 30% 8% / 0.08), 0 1px 3px -1px hsl(158 30% 8% / 0.06);
+    --shadow-lg: 0 12px 32px -8px hsl(158 30% 8% / 0.12), 0 4px 12px -4px hsl(158 30% 8% / 0.08);
+    --shadow-elegant: 0 20px 50px -20px hsl(161 94% 24% / 0.25);
 
     --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
-    --background: 220 28% 8%;
-    --foreground: 38 25% 94%;
+    --background: 158 30% 6%;
+    --foreground: 152 25% 94%;
 
-    --card: 220 26% 11%;
-    --card-foreground: 38 25% 94%;
+    --card: 158 28% 9%;
+    --card-foreground: 152 25% 94%;
 
-    --popover: 220 26% 11%;
-    --popover-foreground: 38 25% 94%;
+    --popover: 158 28% 9%;
+    --popover-foreground: 152 25% 94%;
 
-    --primary: 186 70% 55%;
-    --primary-foreground: 220 30% 8%;
-    --primary-glow: 186 80% 65%;
+    --primary: 160 84% 45%;            /* emerald-500-ish */
+    --primary-foreground: 158 30% 6%;
+    --primary-glow: 152 76% 60%;       /* emerald-400 */
 
-    --secondary: 220 22% 16%;
-    --secondary-foreground: 38 25% 94%;
+    --secondary: 158 22% 14%;
+    --secondary-foreground: 152 25% 94%;
 
-    --muted: 220 22% 14%;
-    --muted-foreground: 38 12% 65%;
+    --muted: 158 22% 12%;
+    --muted-foreground: 152 12% 65%;
 
-    --accent: 35 80% 58%;
-    --accent-foreground: 220 30% 10%;
+    --accent: 158 22% 16%;
+    --accent-foreground: 160 84% 65%;
 
-    --destructive: 358 65% 55%;
-    --destructive-foreground: 38 25% 94%;
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 152 25% 94%;
 
-    --success: 152 55% 45%;
-    --success-foreground: 220 30% 8%;
+    --success: 160 70% 45%;
+    --success-foreground: 158 30% 6%;
 
-    --warning: 35 88% 55%;
-    --warning-foreground: 220 30% 10%;
+    --warning: 38 88% 55%;
+    --warning-foreground: 158 30% 8%;
 
-    --border: 220 20% 18%;
-    --input: 220 20% 18%;
-    --ring: 186 70% 55%;
+    --border: 158 20% 18%;
+    --input: 158 20% 18%;
+    --ring: 160 84% 45%;
 
-    --sidebar-background: 220 26% 10%;
-    --sidebar-foreground: 38 18% 82%;
-    --sidebar-primary: 186 70% 55%;
-    --sidebar-primary-foreground: 220 30% 8%;
-    --sidebar-accent: 220 22% 16%;
-    --sidebar-accent-foreground: 186 70% 65%;
-    --sidebar-border: 220 20% 16%;
-    --sidebar-ring: 186 70% 55%;
+    --sidebar-background: 158 28% 8%;
+    --sidebar-foreground: 152 18% 82%;
+    --sidebar-primary: 160 84% 45%;
+    --sidebar-primary-foreground: 158 30% 6%;
+    --sidebar-accent: 158 22% 14%;
+    --sidebar-accent-foreground: 160 84% 65%;
+    --sidebar-border: 158 20% 16%;
+    --sidebar-ring: 160 84% 45%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(186 70% 25%), hsl(186 80% 45%));
-    --gradient-subtle: linear-gradient(180deg, hsl(220 28% 9%), hsl(220 26% 11%));
+    --gradient-primary: linear-gradient(135deg, hsl(161 84% 28%), hsl(160 84% 45%));
+    --gradient-subtle: linear-gradient(180deg, hsl(158 30% 7%), hsl(158 28% 9%));
   }
 }
 
@@ -129,7 +130,7 @@
   }
 
   html {
-    font-family: 'IBM Plex Sans Arabic', 'Cairo', system-ui, -apple-system, sans-serif;
+    font-family: 'Rubik', system-ui, -apple-system, sans-serif;
   }
 
   body {
@@ -146,13 +147,27 @@
   }
 
   h1, h2, h3, h4 {
-    font-family: 'Cairo', 'IBM Plex Sans Arabic', sans-serif;
+    font-family: 'Rubik', system-ui, sans-serif;
     @apply font-bold tracking-tight;
   }
 
   /* RTL-aware focus ring */
   *:focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* =====================================================
+     RTL fixes — Tailwind's space-x-* uses LTR margins by
+     default. Flip them globally when the document is RTL
+     so dialog footers, button rows, etc. space correctly.
+     ===================================================== */
+  [dir="rtl"] .space-x-1 > :not([hidden]) ~ :not([hidden]),
+  [dir="rtl"] .space-x-2 > :not([hidden]) ~ :not([hidden]),
+  [dir="rtl"] .space-x-3 > :not([hidden]) ~ :not([hidden]),
+  [dir="rtl"] .space-x-4 > :not([hidden]) ~ :not([hidden]),
+  [dir="rtl"] .space-x-6 > :not([hidden]) ~ :not([hidden]),
+  [dir="rtl"] .space-x-8 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 1;
   }
 
   /* Scrollbar styling */
