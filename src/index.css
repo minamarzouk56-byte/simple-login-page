@@ -72,6 +72,13 @@
     --shadow-elegant: 0 20px 50px -20px hsl(161 94% 24% / 0.25);
 
     --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Account type accent colors (HSL) — distinct hues for tree clarity */
+    --acc-asset: 161 94% 30%;        /* emerald */
+    --acc-liability: 25 95% 53%;     /* orange */
+    --acc-equity: 262 83% 58%;       /* violet */
+    --acc-revenue: 199 89% 48%;      /* sky */
+    --acc-expense: 0 72% 50%;        /* red */
   }
 
   .dark {
@@ -121,6 +128,12 @@
 
     --gradient-primary: linear-gradient(135deg, hsl(161 84% 28%), hsl(160 84% 45%));
     --gradient-subtle: linear-gradient(180deg, hsl(158 30% 7%), hsl(158 28% 9%));
+
+    --acc-asset: 160 84% 45%;
+    --acc-liability: 25 90% 60%;
+    --acc-equity: 262 83% 70%;
+    --acc-revenue: 199 89% 60%;
+    --acc-expense: 0 72% 60%;
   }
 }
 
