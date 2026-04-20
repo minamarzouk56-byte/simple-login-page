@@ -23,7 +23,11 @@ export type AppPermission =
   | "suppliers.delete"
   | "reports.view"
   | "users.manage"
-  | "settings.manage";
+  | "settings.manage"
+  | "inventory.view"
+  | "inventory.manage"
+  | "inventory.request"
+  | "inventory.approve";
 
 export interface Profile {
   id: string;
@@ -144,7 +148,124 @@ export const PERMISSION_LABELS_AR: Record<AppPermission, string> = {
   "reports.view": "عرض التقارير",
   "users.manage": "إدارة المستخدمين والصلاحيات",
   "settings.manage": "إدارة الإعدادات",
+  "inventory.view": "عرض المخزون والحركات",
+  "inventory.manage": "إدارة الأصناف والمخازن والفئات",
+  "inventory.request": "طلب أذونات المخزون",
+  "inventory.approve": "الموافقة على أذونات المخزون",
 };
+
+// =============== Inventory ===============
+
+export type PermitType = "issue" | "receive";
+export type PermitStatus = "pending" | "approved" | "rejected" | "cancelled";
+export type MovementType = "in" | "out" | "adjust" | "transfer";
+
+export const PERMIT_TYPE_LABELS_AR: Record<PermitType, string> = {
+  issue: "إذن صرف",
+  receive: "إذن وارد",
+};
+
+export const PERMIT_STATUS_LABELS_AR: Record<PermitStatus, string> = {
+  pending: "في الانتظار",
+  approved: "تمت الموافقة",
+  rejected: "مرفوض",
+  cancelled: "ملغي",
+};
+
+export const MOVEMENT_TYPE_LABELS_AR: Record<MovementType, string> = {
+  in: "وارد",
+  out: "صرف",
+  adjust: "تسوية",
+  transfer: "تحويل",
+};
+
+export interface Warehouse {
+  id: string;
+  code: string;
+  name: string;
+  location: string | null;
+  is_active: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ItemCategory {
+  id: string;
+  code: string;
+  name: string;
+  parent_id: string | null;
+  is_active: boolean;
+}
+
+export interface InventoryItem {
+  id: string;
+  code: string;
+  name: string;
+  unit: string;
+  category_id: string | null;
+  default_warehouse_id: string | null;
+  cost_price: number;
+  sale_price: number;
+  min_stock: number;
+  account_id: string | null;
+  description: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ItemStock {
+  id: string;
+  item_id: string;
+  warehouse_id: string;
+  quantity: number;
+  updated_at: string;
+}
+
+export interface InventoryPermit {
+  id: string;
+  permit_number: string;
+  permit_type: PermitType;
+  permit_date: string;
+  warehouse_id: string;
+  counterparty_account_id: string | null;
+  description: string | null;
+  notes: string | null;
+  status: PermitStatus;
+  total_amount: number;
+  requested_by: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_notes: string | null;
+  journal_entry_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InventoryPermitLine {
+  id: string;
+  permit_id: string;
+  item_id: string;
+  quantity: number;
+  unit_price: number;
+  line_total: number;
+  notes: string | null;
+  line_order: number;
+}
+
+export interface StockMovement {
+  id: string;
+  item_id: string;
+  warehouse_id: string;
+  movement_type: MovementType;
+  quantity: number;
+  unit_price: number;
+  permit_id: string | null;
+  description: string | null;
+  movement_date: string;
+  created_by: string | null;
+}
 
 export const ACCOUNT_TYPE_LABELS_AR: Record<AccountType, string> = {
   asset: "أصول",
