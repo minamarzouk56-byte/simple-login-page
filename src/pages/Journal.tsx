@@ -267,11 +267,25 @@ const NewJournalDialog = ({
                       </Select>
                     </td>
                     <td className="p-1.5">
-                      <Select value={line.partner_id ?? "__none"} onValueChange={(v) => updateLine(idx, { partner_id: v === "__none" ? null : v })}>
+                      <Select
+                        value={line.customer_id ? `c:${line.customer_id}` : line.supplier_id ? `s:${line.supplier_id}` : "__none"}
+                        onValueChange={(v) => {
+                          if (v === "__none") updateLine(idx, { customer_id: null, supplier_id: null });
+                          else if (v.startsWith("c:")) updateLine(idx, { customer_id: v.slice(2), supplier_id: null });
+                          else updateLine(idx, { supplier_id: v.slice(2), customer_id: null });
+                        }}
+                      >
                         <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="__none">— بدون —</SelectItem>
-                          {partners.map((p) => <SelectItem key={p.id} value={p.id}>{p.name_ar}</SelectItem>)}
+                          {customers.length > 0 && (
+                            <div className="px-2 py-1 text-xs text-muted-foreground">العملاء</div>
+                          )}
+                          {customers.map((c) => <SelectItem key={`c-${c.id}`} value={`c:${c.id}`}>{c.name}</SelectItem>)}
+                          {suppliers.length > 0 && (
+                            <div className="px-2 py-1 text-xs text-muted-foreground">الموردين</div>
+                          )}
+                          {suppliers.map((s) => <SelectItem key={`s-${s.id}`} value={`s:${s.id}`}>{s.name}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </td>
