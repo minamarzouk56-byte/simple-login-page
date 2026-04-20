@@ -213,6 +213,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           credit_limit: number
+          currency: string
           email: string | null
           id: string
           is_active: boolean
@@ -230,6 +231,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           credit_limit?: number
+          currency?: string
           email?: string | null
           id?: string
           is_active?: boolean
@@ -247,6 +249,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           credit_limit?: number
+          currency?: string
           email?: string | null
           id?: string
           is_active?: boolean
@@ -257,7 +260,22 @@ export type Database = {
           tax_number?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customers_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_currency_fkey"
+            columns: ["currency"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       inventory_requests: {
         Row: {
@@ -482,6 +500,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           credit_limit: number
+          currency: string
           email: string | null
           id: string
           is_active: boolean
@@ -499,6 +518,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           credit_limit?: number
+          currency?: string
           email?: string | null
           id?: string
           is_active?: boolean
@@ -516,6 +536,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           credit_limit?: number
+          currency?: string
           email?: string | null
           id?: string
           is_active?: boolean
@@ -526,7 +547,22 @@ export type Database = {
           tax_number?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suppliers_currency_fkey"
+            columns: ["currency"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       user_permissions: {
         Row: {
