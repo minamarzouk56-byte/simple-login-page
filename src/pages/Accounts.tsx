@@ -563,15 +563,31 @@ const NewAccountDialog = ({
           )}
 
           <div className="space-y-2">
-            <Label>العملة</Label>
-            <Select value={currency} onValueChange={setCurrency}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {currencies.map((c) => (
-                  <SelectItem key={c.code} value={c.code}>{c.name_ar} ({c.code})</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>
+              العملة {lockedCurrency && <span className="text-xs text-muted-foreground">(موروثة من الحساب الأب)</span>}
+            </Label>
+            <SearchableSelect
+              value={currency}
+              onChange={setCurrency}
+              disabled={!!lockedCurrency}
+              placeholder="اختر العملة..."
+              searchPlaceholder="ابحث عن العملة..."
+              options={currencies.map((c) => ({
+                value: c.code,
+                label: `${c.name_ar} (${c.code})`,
+                keywords: `${c.code} ${c.name_ar}`,
+              }))}
+            />
+            {lockedCurrency && (
+              <p className="text-xs text-muted-foreground">
+                الحساب الأب بعملة {lockedCurrency}، لذلك الحساب الفرعي لازم يكون بنفس العملة.
+              </p>
+            )}
+            {!lockedCurrency && parent?.currency === "GEN" && (
+              <p className="text-xs text-muted-foreground">
+                الحساب الأب بعملة "عام"، يمكنك اختيار أي عملة للحساب الفرعي.
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
