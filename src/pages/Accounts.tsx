@@ -77,6 +77,41 @@ const Accounts = () => {
 
   const tree = useMemo(() => buildTree(accounts), [accounts]);
 
+  // Filter tree by search query (matches name or code), keeping ancestors
+  const { filteredTree, autoExpand } = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return { filteredTree: tree, autoExpand: new Set<string>() };
+
+    const matchIds = new Set<string>();
+    const ancestors = new Set<string>();
+    const parentMap = new Map<string, string | null>();
+    accounts.forEach((a) => parentMap.set(a.id, a.parent_id));
+
+    accounts.forEach((a) => {
+      if (a.name.toLowerCase().includes(q) || a.code.toLowerCase().includes(q)) {
+        matchIds.add(a.id);
+        let p = parentMap.get(a.id) ?? null;
+        while (p) {
+          ancestors.add(p);
+          p = parentMap.get(p) ?? null;
+        }
+      }
+    });
+
+    const keep = new Set<string>([...matchIds, ...ancestors]);
+    const filterRec = (nodes: TreeNode[]): TreeNode[] =>
+      nodes
+        .filter((n) => keep.has(n.id))
+        .map((n) => ({ ...n, children: filterRec(n.children) }));
+
+    return { filteredTree: filterRec(tree), autoExpand: ancestors };
+  }, [tree, accounts, search]);
+
+  const effectiveExpanded = useMemo(() => {
+    if (!search.trim()) return expanded;
+    return new Set<string>([...expanded, ...autoExpand]);
+  }, [expanded, autoExpand, search]);
+
   const toggle = (id: string) => {
     setExpanded((prev) => {
       const next = new Set(prev);
