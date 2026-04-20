@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Loader2 } from "lucide-react";
 import type { Customer, Account, Currency } from "@/lib/finhub-types";
@@ -128,7 +127,7 @@ export const PartnerFormDialog = ({ open, onOpenChange, partner, kind, onSaved }
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           <div className="grid gap-4 px-6 py-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>الكود (يُنشأ تلقائياً)</Label>
@@ -225,7 +224,7 @@ export const PartnerFormDialog = ({ open, onOpenChange, partner, kind, onSaved }
               <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
             </div>
           </div>
-        </ScrollArea>
+        </div>
 
         <DialogFooter className="px-6 py-4 border-t shrink-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
