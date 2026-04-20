@@ -233,6 +233,7 @@ const Accounts = () => {
 
       <EditAccountDialog
         account={editTarget}
+        allAccounts={accounts}
         onOpenChange={(o) => !o && setEditTarget(null)}
         currencies={currencies}
         onSaved={load}
