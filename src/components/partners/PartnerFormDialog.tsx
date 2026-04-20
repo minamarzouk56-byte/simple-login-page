@@ -178,7 +178,7 @@ export const PartnerFormDialog = ({ open, onOpenChange, partner, kind, onSaved }
                 }))}
               />
               <p className="text-xs text-muted-foreground">
-                بتظهر فقط الحسابات الفرعية (آخر مستوى) بنفس عملة {kind === "customer" ? "العميل" : "المورد"} أو الحسابات بعملة "عام".
+                بتظهر فقط الحسابات الفرعية (آخر مستوى) بنفس عملة {kind === "customer" ? "العميل" : "المورد"} ({currency}).
               </p>
             </div>
 
