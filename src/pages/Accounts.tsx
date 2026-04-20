@@ -498,13 +498,17 @@ const NewAccountDialog = ({
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // If parent currency is set and is not "GEN", child must inherit it
+  const lockedCurrency = parent && parent.currency !== "GEN" ? parent.currency : null;
+
   useEffect(() => {
     if (open) {
       setName("");
       setNotes("");
       setType(parent?.type ?? "asset");
-      setCurrency(parent?.currency ?? "EGP");
+      setCurrency(lockedCurrency ?? parent?.currency ?? "EGP");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, parent]);
 
   const handleSave = async () => {
