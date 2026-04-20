@@ -1,10 +1,11 @@
+import ExcelJS from "exceljs";
+import PDFDocument from "pdfkit/js/pdfkit.es.js";
+import blobStream from "blob-stream";
 import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import CairoFontUrl from "@/assets/fonts/Cairo.ttf?url";
 import type { Customer } from "@/lib/finhub-types";
 
 export type PartnerKind = "customer" | "supplier";
-
 export interface PartnerRow extends Customer {}
 
 export interface ImportRow {
@@ -36,9 +37,6 @@ const HEADERS_AR = {
   notes: "ملاحظات",
 };
 
-const fmtNum = (n: number) =>
-  (Number(n) || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
 interface ExportContext {
   rows: PartnerRow[];
   accountsMap: Record<string, { code: string; name: string }>;
@@ -46,103 +44,206 @@ interface ExportContext {
   kind: PartnerKind;
 }
 
-const buildAoa = ({ rows, accountsMap, movements, kind }: ExportContext): (string | number)[][] => {
-  const header = [
-    HEADERS_AR.code,
-    HEADERS_AR.name,
-    HEADERS_AR.account_code,
-    HEADERS_AR.account_name,
-    HEADERS_AR.currency,
-    HEADERS_AR.phone,
-    HEADERS_AR.email,
-    HEADERS_AR.address,
-    HEADERS_AR.tax_number,
-    HEADERS_AR.credit_limit,
-    HEADERS_AR.opening_balance,
-    HEADERS_AR.balance,
-    HEADERS_AR.notes,
+const triggerDownload = (blob: Blob, filename: string) => {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+};
+
+// =====================================================
+// EXCEL EXPORT (styled with ExcelJS)
+// =====================================================
+export const exportToExcel = async (ctx: ExportContext) => {
+  const { rows, accountsMap, movements, kind } = ctx;
+  const wb = new ExcelJS.Workbook();
+  wb.creator = "FinHub";
+  wb.created = new Date();
+  const sheetName = kind === "customer" ? "العملاء" : "الموردين";
+  const ws = wb.addWorksheet(sheetName, {
+    views: [{ rightToLeft: true, state: "frozen", ySplit: 4 }],
+    properties: { defaultRowHeight: 22 },
+  });
+
+  // Title
+  ws.mergeCells("A1:M1");
+  const title = ws.getCell("A1");
+  title.value = kind === "customer" ? "كشف العملاء" : "كشف الموردين";
+  title.font = { name: "Cairo", size: 18, bold: true, color: { argb: "FF1E3A8A" } };
+  title.alignment = { horizontal: "center", vertical: "middle" };
+  ws.getRow(1).height = 32;
+
+  // Subtitle (date)
+  ws.mergeCells("A2:M2");
+  const sub = ws.getCell("A2");
+  sub.value = `تاريخ التصدير: ${new Date().toLocaleDateString("ar-EG")}  •  عدد السجلات: ${rows.length}`;
+  sub.font = { name: "Cairo", size: 11, color: { argb: "FF64748B" } };
+  sub.alignment = { horizontal: "center" };
+  ws.getRow(2).height = 22;
+
+  // Spacer
+  ws.getRow(3).height = 8;
+
+  // Header row (row 4)
+  const headerRow = ws.getRow(4);
+  const headers = [
+    HEADERS_AR.code, HEADERS_AR.name, HEADERS_AR.account_code, HEADERS_AR.account_name,
+    HEADERS_AR.currency, HEADERS_AR.phone, HEADERS_AR.email, HEADERS_AR.address,
+    HEADERS_AR.tax_number, HEADERS_AR.credit_limit, HEADERS_AR.opening_balance,
+    HEADERS_AR.balance, HEADERS_AR.notes,
   ];
-  const body = rows.map((p) => {
+  headerRow.values = headers;
+  headerRow.height = 28;
+  headerRow.eachCell((cell) => {
+    cell.font = { name: "Cairo", size: 11, bold: true, color: { argb: "FFFFFFFF" } };
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF2563EB" } };
+    cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+    cell.border = {
+      top: { style: "thin", color: { argb: "FF1E40AF" } },
+      bottom: { style: "thin", color: { argb: "FF1E40AF" } },
+      left: { style: "thin", color: { argb: "FF1E40AF" } },
+      right: { style: "thin", color: { argb: "FF1E40AF" } },
+    };
+  });
+
+  // Data rows
+  rows.forEach((p, idx) => {
     const acc = p.account_id ? accountsMap[p.account_id] : null;
     const balance = (Number(p.opening_balance) || 0) + (movements[p.id] ?? 0);
-    return [
-      p.code,
-      p.name,
-      acc?.code ?? "",
-      acc?.name ?? "",
-      p.currency,
-      p.phone ?? "",
-      p.email ?? "",
-      p.address ?? "",
-      p.tax_number ?? "",
-      Number(p.credit_limit) || 0,
-      Number(p.opening_balance) || 0,
-      balance,
-      p.notes ?? "",
-    ];
+    const row = ws.addRow([
+      p.code, p.name, acc?.code ?? "", acc?.name ?? "", p.currency,
+      p.phone ?? "", p.email ?? "", p.address ?? "", p.tax_number ?? "",
+      Number(p.credit_limit) || 0, Number(p.opening_balance) || 0, balance, p.notes ?? "",
+    ]);
+    row.height = 22;
+    const isAlt = idx % 2 === 1;
+    row.eachCell({ includeEmpty: true }, (cell, colNum) => {
+      cell.font = { name: "Cairo", size: 10, color: { argb: "FF0F172A" } };
+      cell.alignment = { horizontal: colNum >= 10 && colNum <= 12 ? "left" : "right", vertical: "middle" };
+      if (isAlt) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
+      cell.border = {
+        top: { style: "thin", color: { argb: "FFE2E8F0" } },
+        bottom: { style: "thin", color: { argb: "FFE2E8F0" } },
+        left: { style: "thin", color: { argb: "FFE2E8F0" } },
+        right: { style: "thin", color: { argb: "FFE2E8F0" } },
+      };
+    });
+    // Numeric formats
+    [10, 11, 12].forEach((c) => {
+      const cell = row.getCell(c);
+      cell.numFmt = "#,##0.00;[Red](#,##0.00);-";
+    });
+    // Color the current balance based on sign
+    const balCell = row.getCell(12);
+    if (balance > 0) balCell.font = { name: "Cairo", size: 10, bold: true, color: { argb: "FF15803D" } };
+    else if (balance < 0) balCell.font = { name: "Cairo", size: 10, bold: true, color: { argb: "FFDC2626" } };
+    else balCell.font = { name: "Cairo", size: 10, color: { argb: "FF94A3B8" } };
   });
-  return [header, ...body];
-};
 
-export const exportToExcel = (ctx: ExportContext) => {
-  const aoa = buildAoa(ctx);
-  const ws = XLSX.utils.aoa_to_sheet(aoa);
-  ws["!cols"] = [
-    { wch: 10 }, { wch: 26 }, { wch: 14 }, { wch: 26 }, { wch: 8 },
-    { wch: 16 }, { wch: 24 }, { wch: 28 }, { wch: 16 },
-    { wch: 14 }, { wch: 16 }, { wch: 16 }, { wch: 30 },
-  ];
-  ws["!views"] = [{ RTL: true }];
-  // Number format on numeric cols (J, K, L) starting row 2
-  const range = XLSX.utils.decode_range(ws["!ref"]!);
-  for (let R = 1; R <= range.e.r; R++) {
-    for (const C of [9, 10, 11]) {
-      const addr = XLSX.utils.encode_cell({ r: R, c: C });
-      if (ws[addr]) ws[addr].z = "#,##0.00;(#,##0.00);-";
-    }
+  // Column widths
+  const widths = [10, 28, 14, 28, 8, 16, 26, 30, 16, 14, 16, 16, 30];
+  widths.forEach((w, i) => { ws.getColumn(i + 1).width = w; });
+
+  // Totals row
+  if (rows.length) {
+    const totalCredit = rows.reduce((s, p) => s + (Number(p.credit_limit) || 0), 0);
+    const totalOpening = rows.reduce((s, p) => s + (Number(p.opening_balance) || 0), 0);
+    const totalBalance = rows.reduce(
+      (s, p) => s + (Number(p.opening_balance) || 0) + (movements[p.id] ?? 0), 0,
+    );
+    const totRow = ws.addRow([
+      "", "الإجمالي", "", "", "", "", "", "", "", totalCredit, totalOpening, totalBalance, "",
+    ]);
+    totRow.height = 26;
+    totRow.eachCell({ includeEmpty: true }, (cell, colNum) => {
+      cell.font = { name: "Cairo", size: 11, bold: true, color: { argb: "FF0F172A" } };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFEF3C7" } };
+      cell.alignment = { horizontal: colNum >= 10 && colNum <= 12 ? "left" : "right", vertical: "middle" };
+      cell.border = {
+        top: { style: "medium", color: { argb: "FFCA8A04" } },
+        bottom: { style: "medium", color: { argb: "FFCA8A04" } },
+        left: { style: "thin", color: { argb: "FFE2E8F0" } },
+        right: { style: "thin", color: { argb: "FFE2E8F0" } },
+      };
+    });
+    [10, 11, 12].forEach((c) => { totRow.getCell(c).numFmt = "#,##0.00;[Red](#,##0.00);-"; });
   }
-  const wb = XLSX.utils.book_new();
-  const sheetName = ctx.kind === "customer" ? "العملاء" : "الموردين";
-  XLSX.utils.book_append_sheet(wb, ws, sheetName);
-  const filename = `${ctx.kind === "customer" ? "customers" : "suppliers"}_${new Date()
+
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const filename = `${kind === "customer" ? "customers" : "suppliers"}_${new Date()
     .toISOString()
     .slice(0, 10)}.xlsx`;
-  XLSX.writeFile(wb, filename);
+  triggerDownload(blob, filename);
 };
 
-export const downloadTemplate = (kind: PartnerKind) => {
-  const header = [
-    HEADERS_AR.name,
-    HEADERS_AR.phone,
-    HEADERS_AR.email,
-    HEADERS_AR.address,
-    HEADERS_AR.tax_number,
-    HEADERS_AR.currency,
-    HEADERS_AR.account_code,
-    HEADERS_AR.credit_limit,
-    HEADERS_AR.opening_balance,
-    HEADERS_AR.notes,
+// =====================================================
+// EXCEL TEMPLATE (styled)
+// =====================================================
+export const downloadTemplate = async (kind: PartnerKind) => {
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet("قالب", { views: [{ rightToLeft: true }] });
+
+  const headers = [
+    HEADERS_AR.name, HEADERS_AR.phone, HEADERS_AR.email, HEADERS_AR.address,
+    HEADERS_AR.tax_number, HEADERS_AR.currency, HEADERS_AR.account_code,
+    HEADERS_AR.credit_limit, HEADERS_AR.opening_balance, HEADERS_AR.notes,
   ];
+  ws.addRow(headers);
+  ws.getRow(1).height = 28;
+  ws.getRow(1).eachCell((cell) => {
+    cell.font = { name: "Cairo", size: 11, bold: true, color: { argb: "FFFFFFFF" } };
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF2563EB" } };
+    cell.alignment = { horizontal: "center", vertical: "middle" };
+    cell.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
+  });
   const example = [
     kind === "customer" ? "شركة المثال للتجارة" : "مورد المثال",
-    "01000000000",
-    "example@mail.com",
-    "القاهرة، مصر",
-    "100-200-300",
-    "EGP",
-    "1101001",
-    0,
-    0,
-    "",
+    "01000000000", "example@mail.com", "القاهرة، مصر", "100-200-300",
+    "EGP", "1101001", 0, 0, "",
   ];
-  const ws = XLSX.utils.aoa_to_sheet([header, example]);
-  ws["!views"] = [{ RTL: true }];
-  ws["!cols"] = header.map(() => ({ wch: 22 }));
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "قالب");
-  XLSX.writeFile(wb, `${kind}_template.xlsx`);
+  const exRow = ws.addRow(example);
+  exRow.eachCell({ includeEmpty: true }, (cell) => {
+    cell.font = { name: "Cairo", size: 10, italic: true, color: { argb: "FF64748B" } };
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFEF9C3" } };
+    cell.alignment = { horizontal: "right", vertical: "middle" };
+  });
+  headers.forEach((_, i) => { ws.getColumn(i + 1).width = 22; });
+
+  // Instructions sheet
+  const info = wb.addWorksheet("تعليمات", { views: [{ rightToLeft: true }] });
+  info.getColumn(1).width = 80;
+  const lines = [
+    "تعليمات استخدام القالب",
+    "",
+    "1) لا تغيّر أسماء الأعمدة في الصف الأول.",
+    "2) عمود (العملة) يجب أن يحتوي على رمز العملة مثل: EGP, USD, EUR.",
+    "3) عمود (كود الحساب المرتبط) يجب أن يطابق كود حساب فرعي موجود بنفس العملة.",
+    "4) إذا تركت عمود الحساب فارغاً، سيتم إنشاء السجل بدون ربط بحساب.",
+    "5) الأعمدة الرقمية (حد الائتمان / الرصيد الافتتاحي) أرقام عشرية.",
+    "6) سيتم توليد الكود تلقائياً للسجلات الجديدة.",
+  ];
+  lines.forEach((l, i) => {
+    const c = info.getCell(`A${i + 1}`);
+    c.value = l;
+    c.font = { name: "Cairo", size: i === 0 ? 14 : 11, bold: i === 0, color: { argb: i === 0 ? "FF1E3A8A" : "FF0F172A" } };
+    c.alignment = { horizontal: "right", vertical: "middle" };
+  });
+
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  triggerDownload(blob, `${kind}_template.xlsx`);
 };
 
+// =====================================================
+// EXCEL IMPORT (uses xlsx for simple parsing)
+// =====================================================
 export const parseImportFile = async (file: File): Promise<ImportRow[]> => {
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf);
@@ -173,92 +274,144 @@ export const parseImportFile = async (file: File): Promise<ImportRow[]> => {
     .filter((r): r is ImportRow => r !== null);
 };
 
-// --- PDF export with Arabic font ---
-let amiriFontPromise: Promise<string | null> | null = null;
-const loadAmiriBase64 = (): Promise<string | null> => {
-  if (amiriFontPromise) return amiriFontPromise;
-  amiriFontPromise = (async () => {
-    try {
-      const url =
-        "https://cdn.jsdelivr.net/gh/aliftype/amiri@1.000/fonts/ttf/Amiri-Regular.ttf";
-      const res = await fetch(url);
-      if (!res.ok) return null;
-      const buf = await res.arrayBuffer();
-      let binary = "";
-      const bytes = new Uint8Array(buf);
-      const chunk = 0x8000;
-      for (let i = 0; i < bytes.length; i += chunk) {
-        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
-      }
-      return btoa(binary);
-    } catch {
-      return null;
-    }
-  })();
-  return amiriFontPromise;
+// =====================================================
+// PDF EXPORT (pdfkit + Cairo font, full Arabic shaping)
+// =====================================================
+let cairoFontPromise: Promise<ArrayBuffer> | null = null;
+const loadCairoFont = (): Promise<ArrayBuffer> => {
+  if (!cairoFontPromise) {
+    cairoFontPromise = fetch(CairoFontUrl).then((r) => {
+      if (!r.ok) throw new Error("Failed to load Arabic font");
+      return r.arrayBuffer();
+    });
+  }
+  return cairoFontPromise;
 };
 
 export const exportToPdf = async (ctx: ExportContext) => {
-  const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
-  const fontB64 = await loadAmiriBase64();
-  let font = "helvetica";
-  if (fontB64) {
-    doc.addFileToVFS("Amiri-Regular.ttf", fontB64);
-    doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
-    font = "Amiri";
+  const { rows, accountsMap, movements, kind } = ctx;
+  const fontBuf = await loadCairoFont();
+
+  const doc = new PDFDocument({ size: "A4", layout: "landscape", margin: 30, bufferPages: true });
+  const stream = doc.pipe(blobStream());
+
+  doc.registerFont("Cairo", fontBuf);
+  doc.font("Cairo");
+
+  const pageWidth = doc.page.width;
+  const pageHeight = doc.page.height;
+  const rtlOpts = { features: ["rtla"] as string[] };
+
+  // ============ Header ============
+  const drawHeader = () => {
+    doc.fillColor("#1e3a8a").fontSize(18);
+    doc.text(kind === "customer" ? "كشف العملاء" : "كشف الموردين", 30, 30, {
+      width: pageWidth - 60, align: "right", ...rtlOpts, lineBreak: false,
+    });
+    doc.fontSize(9).fillColor("#64748b");
+    // Use English digit format separately to avoid bidi flipping
+    const dateStr = new Date().toLocaleDateString("ar-EG-u-nu-arab");
+    doc.text(`تاريخ التصدير: ${dateStr}  •  عدد السجلات: ${rows.length}`, 30, 56, {
+      width: pageWidth - 60, align: "right", ...rtlOpts, lineBreak: false,
+    });
+    // Divider line
+    doc.strokeColor("#cbd5e1").lineWidth(0.5).moveTo(30, 78).lineTo(pageWidth - 30, 78).stroke();
+  };
+
+  drawHeader();
+
+  // ============ Table ============
+  const headers = ["الكود", "الاسم", "الحساب المرتبط", "العملة", "الهاتف", "حد الائتمان", "الرصيد"];
+  const colWidths = [55, 175, 195, 50, 95, 80, 80]; // total 730
+  const totalW = colWidths.reduce((a, b) => a + b, 0);
+  const startX = (pageWidth - totalW) / 2;
+  const headerH = 26;
+  const rowH = 22;
+  let y = 95;
+
+  const drawTableHeader = () => {
+    doc.rect(startX, y, totalW, headerH).fill("#2563eb");
+    doc.fillColor("#ffffff").fontSize(10);
+    let x = startX;
+    headers.forEach((h, i) => {
+      doc.text(h, x + 4, y + 8, {
+        width: colWidths[i] - 8, align: "center", ...rtlOpts, lineBreak: false,
+      });
+      x += colWidths[i];
+    });
+    y += headerH;
+  };
+
+  drawTableHeader();
+
+  const fmtMoney = (n: number) =>
+    n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  rows.forEach((p, idx) => {
+    if (y + rowH > pageHeight - 40) {
+      doc.addPage();
+      y = 40;
+      drawTableHeader();
+    }
+    const acc = p.account_id ? accountsMap[p.account_id] : null;
+    const balance = (Number(p.opening_balance) || 0) + (movements[p.id] ?? 0);
+    const cells = [
+      p.code,
+      p.name,
+      acc ? `${acc.name}` : "—",
+      p.currency,
+      p.phone ?? "—",
+      Number(p.credit_limit) > 0 ? fmtMoney(Number(p.credit_limit)) : "—",
+      fmtMoney(balance),
+    ];
+    if (idx % 2 === 0) {
+      doc.rect(startX, y, totalW, rowH).fill("#f8fafc");
+    }
+    let x = startX;
+    doc.fontSize(9);
+    cells.forEach((cell, i) => {
+      const isNumeric = i >= 5;
+      let color = "#0f172a";
+      if (i === 6) {
+        if (balance > 0) color = "#15803d";
+        else if (balance < 0) color = "#dc2626";
+        else color = "#94a3b8";
+      } else if (i === 0) color = "#64748b";
+      doc.fillColor(color);
+      doc.text(String(cell), x + 4, y + 6, {
+        width: colWidths[i] - 8,
+        align: isNumeric ? "left" : i === 3 ? "center" : "right",
+        ...rtlOpts,
+        lineBreak: false,
+        ellipsis: true,
+      });
+      x += colWidths[i];
+    });
+    // Row border
+    doc.strokeColor("#e2e8f0").lineWidth(0.4).moveTo(startX, y + rowH).lineTo(startX + totalW, y + rowH).stroke();
+    y += rowH;
+  });
+
+  // ============ Page numbers ============
+  const range = doc.bufferedPageRange();
+  for (let i = 0; i < range.count; i++) {
+    doc.switchToPage(range.start + i);
+    doc.fillColor("#94a3b8").fontSize(8);
+    doc.text(`صفحة ${i + 1} من ${range.count}`, 30, pageHeight - 25, {
+      width: pageWidth - 60, align: "center", ...rtlOpts, lineBreak: false,
+    });
   }
-  doc.setFont(font);
 
-  const title = ctx.kind === "customer" ? "كشف العملاء" : "كشف الموردين";
-  const dateStr = new Date().toLocaleDateString("ar-EG");
-  doc.setFontSize(16);
-  doc.text(title, doc.internal.pageSize.getWidth() - 40, 40, { align: "right" });
-  doc.setFontSize(10);
-  doc.text(`تاريخ التصدير: ${dateStr}`, doc.internal.pageSize.getWidth() - 40, 58, {
-    align: "right",
+  doc.end();
+
+  await new Promise<void>((resolve, reject) => {
+    stream.on("finish", () => {
+      const blob = stream.toBlob("application/pdf");
+      const filename = `${kind === "customer" ? "customers" : "suppliers"}_${new Date()
+        .toISOString().slice(0, 10)}.pdf`;
+      triggerDownload(blob, filename);
+      resolve();
+    });
+    stream.on("error", reject);
   });
-
-  const aoa = buildAoa(ctx);
-  const head = [aoa[0]];
-  const body = aoa.slice(1).map((r) =>
-    r.map((c, i) => (i >= 9 && i <= 11 ? fmtNum(Number(c) || 0) : String(c ?? ""))),
-  );
-
-  autoTable(doc, {
-    head,
-    body,
-    startY: 75,
-    styles: {
-      font,
-      fontSize: 8,
-      cellPadding: 4,
-      halign: "right",
-      valign: "middle",
-      lineWidth: 0.3,
-      lineColor: [220, 220, 220],
-    },
-    headStyles: {
-      fillColor: [37, 99, 235],
-      textColor: 255,
-      fontStyle: "normal",
-      halign: "right",
-    },
-    alternateRowStyles: { fillColor: [248, 250, 252] },
-    columnStyles: {
-      9: { halign: "left" },
-      10: { halign: "left" },
-      11: { halign: "left", fontStyle: "normal" },
-    },
-    margin: { left: 20, right: 20 },
-    didDrawPage: (data) => {
-      const str = `صفحة ${doc.getNumberOfPages()}`;
-      doc.setFontSize(9);
-      doc.text(str, data.settings.margin.left, doc.internal.pageSize.getHeight() - 12);
-    },
-  });
-
-  const filename = `${ctx.kind === "customer" ? "customers" : "suppliers"}_${new Date()
-    .toISOString()
-    .slice(0, 10)}.pdf`;
-  doc.save(filename);
 };
