@@ -45,10 +45,10 @@ Deno.serve(async (req) => {
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const SERVICE_ROLE_KEY = Deno.env.get("SERVICE_ROLE_KEY")!;
+    const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     if (!SERVICE_ROLE_KEY) {
-      return json({ error: "SERVICE_ROLE_KEY secret is not configured" }, 500);
+      return json({ error: "SUPABASE_SERVICE_ROLE_KEY is not configured" }, 500);
     }
 
     // Client bound to the caller's JWT — used to identify them
@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
     const { data: profile, error: profErr } = await adminClient
       .from("profiles")
       .select("is_admin")
-      .eq("id", callerId)
+      .eq("user_id", callerId)
       .maybeSingle();
 
     if (profErr) return json({ error: profErr.message }, 500);
@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
     await adminClient
       .from("profiles")
       .update({ full_name: fullName, is_admin: false })
-      .eq("id", newUserId);
+      .eq("user_id", newUserId);
 
     // 5. Insert permissions (best-effort)
     if (permissions.length > 0) {
