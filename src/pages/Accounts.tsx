@@ -455,4 +455,97 @@ const NewAccountDialog = ({
   );
 };
 
+const EditAccountDialog = ({
+  account,
+  onOpenChange,
+  currencies,
+  onSaved,
+}: {
+  account: Account | null;
+  onOpenChange: (v: boolean) => void;
+  currencies: Currency[];
+  onSaved: () => void;
+}) => {
+  const { toast } = useToast();
+  const [name, setName] = useState("");
+  const [currency, setCurrency] = useState("EGP");
+  const [notes, setNotes] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (account) {
+      setName(account.name);
+      setCurrency(account.currency);
+      setNotes(account.description ?? "");
+    }
+  }, [account]);
+
+  const handleSave = async () => {
+    if (!account) return;
+    if (!name.trim()) {
+      toast({ title: "أدخل اسم الحساب", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase
+      .from("accounts")
+      .update({
+        name: name.trim(),
+        currency,
+        description: notes.trim() || null,
+      } as never)
+      .eq("id", account.id);
+    setSaving(false);
+    if (error) {
+      toast({ title: "فشل تعديل الحساب", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "تم تحديث الحساب" });
+    onOpenChange(false);
+    onSaved();
+  };
+
+  return (
+    <Dialog open={!!account} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="font-display">تعديل الحساب</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label>الكود</Label>
+            <Input value={account?.code ?? ""} disabled className="font-mono tabular-nums" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-acc-name">اسم الحساب</Label>
+            <Input id="edit-acc-name" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label>العملة</Label>
+            <Select value={currency} onValueChange={setCurrency}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {currencies.map((c) => (
+                  <SelectItem key={c.code} value={c.code}>{c.name_ar} ({c.code})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-acc-notes">ملاحظات</Label>
+            <Textarea id="edit-acc-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>إلغاء</Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving && <Loader2 className="ms-2 h-4 w-4 animate-spin" />}
+            حفظ التعديلات
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 export default Accounts;
