@@ -46,15 +46,19 @@ export interface Currency {
 export interface Account {
   id: string;
   code: string;
-  name_ar: string;
-  account_type: AccountType;
+  name: string;
+  type: AccountType;
   parent_id: string | null;
   level: number;
-  is_leaf: boolean;
-  currency_code: string;
   is_active: boolean;
-  notes: string | null;
+  description: string | null;
+  currency: string;
+  exchange_rate: number;
+  opening_balance: number;
+  opening_balance_debit: number;
+  opening_balance_credit: number;
   created_at: string;
+  updated_at: string;
   created_by: string | null;
 }
 
