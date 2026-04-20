@@ -186,7 +186,6 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
                     <th className="px-4 py-3 text-right font-medium">الكود</th>
                     <th className="px-4 py-3 text-right font-medium">الاسم</th>
                     <th className="px-4 py-3 text-right font-medium">حساب الشجرة المرتبط</th>
-                    <th className="px-4 py-3 text-center font-medium">عملة الحساب</th>
                     <th className="px-4 py-3 text-end font-medium">حد الائتمان</th>
                     <th className="px-4 py-3 text-end font-medium">الرصيد</th>
                     <th className="px-4 py-3 text-end font-medium w-32">الإجراءات</th>
@@ -195,7 +194,6 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
                 <tbody className="divide-y divide-border">
                   {filtered.map((p) => {
                     const balance = (Number(p.opening_balance) || 0) + (movements[p.id] ?? 0);
-                    const cur = currencies[p.currency];
                     return (
                       <tr key={p.id} className="hover:bg-muted/30 transition-base">
                         <td className="px-4 py-3 font-mono text-xs tabular-nums text-muted-foreground">{p.code}</td>
@@ -211,12 +209,6 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
                           ) : (
                             <span className="text-muted-foreground text-xs">— غير مرتبط —</span>
                           )}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2 py-0.5 text-xs font-medium">
-                            <span className="font-mono text-muted-foreground">{p.currency}</span>
-                            <span>{cur?.name_ar ?? "—"}</span>
-                          </span>
                         </td>
                         <td className="px-4 py-3 text-end tabular-nums text-muted-foreground">
                           {Number(p.credit_limit) > 0 ? fmt(Number(p.credit_limit)) : "—"}
