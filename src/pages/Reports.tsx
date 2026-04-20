@@ -52,7 +52,7 @@ const Reports = () => {
 
   const totalsByType = useMemo(() => {
     const totals: Record<AccountType, number> = { asset: 0, liability: 0, equity: 0, revenue: 0, expense: 0 };
-    balances.forEach((b) => { totals[b.account.account_type] += b.balance; });
+    balances.forEach((b) => { totals[b.account.type] += b.balance; });
     return totals;
   }, [balances]);
 
