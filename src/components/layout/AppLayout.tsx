@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Topbar } from "./Topbar";
 import {
   Wallet,
   LayoutDashboard,
@@ -10,7 +10,6 @@ import {
   Users,
   BarChart3,
   Shield,
-  LogOut,
   ChevronLeft,
 } from "lucide-react";
 import type { AppPermission } from "@/lib/finhub-types";
@@ -32,7 +31,7 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export const AppLayout = () => {
-  const { profile, signOut, hasPermission } = useAuth();
+  const { hasPermission } = useAuth();
   const location = useLocation();
 
   const visibleItems = NAV_ITEMS.filter((i) => !i.permission || hasPermission(i.permission));
@@ -79,37 +78,11 @@ export const AppLayout = () => {
           </ul>
         </nav>
 
-        <div className="border-t border-sidebar-border p-3">
-          <div className="mb-2 flex items-center gap-3 rounded-lg px-3 py-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">
-              {(profile?.full_name ?? "?").charAt(0)}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-sidebar-foreground">
-                {profile?.full_name ?? "مستخدم"}
-              </p>
-              <p className="text-xs text-sidebar-foreground/60">
-                {profile?.is_admin ? "مسؤول" : "مستخدم"}
-              </p>
-            </div>
-          </div>
-          <Button variant="ghost" size="sm" onClick={signOut} className="w-full justify-start gap-2 text-sidebar-foreground/80">
-            <LogOut className="h-4 w-4" />
-            تسجيل الخروج
-          </Button>
-        </div>
       </aside>
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border bg-background/80 px-4 md:px-8 backdrop-blur">
-          <h2 className="font-display text-lg font-semibold text-foreground">{currentTitle}</h2>
-          <div className="md:hidden">
-            <Button variant="ghost" size="sm" onClick={signOut}>
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
-        </header>
+        <Topbar title={currentTitle} />
         <main className="flex-1 p-4 md:p-8 overflow-auto animate-fade-in">
           <Outlet />
         </main>

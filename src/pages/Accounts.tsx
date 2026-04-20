@@ -9,8 +9,25 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronLeft, Plus, Loader2, FolderTree } from "lucide-react";
+import { ChevronDown, ChevronLeft, Plus, Loader2, FolderTree, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { ACCOUNT_TYPE_LABELS_AR, type Account, type AccountType, type Currency } from "@/lib/finhub-types";
 import { cn } from "@/lib/utils";
 
@@ -27,8 +44,13 @@ const Accounts = () => {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [parentForNew, setParentForNew] = useState<Account | null>(null);
+  const [editTarget, setEditTarget] = useState<Account | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Account | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const canCreate = hasPermission("accounts.create");
+  const canEdit = hasPermission("accounts.edit");
+  const canDelete = hasPermission("accounts.delete");
 
   const load = async () => {
     setLoading(true);
@@ -62,6 +84,26 @@ const Accounts = () => {
   const openNewDialog = (parent: Account | null) => {
     setParentForNew(parent);
     setDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    const { error } = await supabase.from("accounts").delete().eq("id", deleteTarget.id);
+    setDeleting(false);
+    if (error) {
+      toast({
+        title: "تعذر حذف الحساب",
+        description: error.message.includes("violates")
+          ? "لا يمكن حذف حساب يحتوي على حسابات فرعية أو حركات."
+          : error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+    toast({ title: "تم حذف الحساب" });
+    setDeleteTarget(null);
+    load();
   };
 
   return (
@@ -102,7 +144,11 @@ const Accounts = () => {
                   expanded={expanded}
                   onToggle={toggle}
                   onAddChild={openNewDialog}
+                  onEdit={setEditTarget}
+                  onDelete={setDeleteTarget}
                   canCreate={canCreate}
+                  canEdit={canEdit}
+                  canDelete={canDelete}
                   depth={0}
                 />
               ))}
@@ -118,6 +164,36 @@ const Accounts = () => {
         currencies={currencies}
         onCreated={load}
       />
+
+      <EditAccountDialog
+        account={editTarget}
+        onOpenChange={(o) => !o && setEditTarget(null)}
+        currencies={currencies}
+        onSaved={load}
+      />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف الحساب</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل تريد حذف الحساب <strong className="text-foreground">{deleteTarget?.name}</strong>؟
+              لا يمكن التراجع. لن يُسمح بالحذف إذا كان للحساب فروع أو حركات.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting && <Loader2 className="ms-2 h-4 w-4 animate-spin" />}
+              تأكيد الحذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
@@ -141,29 +217,40 @@ function buildTree(items: Account[]): TreeNode[] {
   return roots;
 }
 
+interface TreeRowProps {
+  node: TreeNode;
+  expanded: Set<string>;
+  onToggle: (id: string) => void;
+  onAddChild: (parent: Account) => void;
+  onEdit: (account: Account) => void;
+  onDelete: (account: Account) => void;
+  canCreate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  depth: number;
+}
+
 const TreeRow = ({
   node,
   expanded,
   onToggle,
   onAddChild,
+  onEdit,
+  onDelete,
   canCreate,
+  canEdit,
+  canDelete,
   depth,
-}: {
-  node: TreeNode;
-  expanded: Set<string>;
-  onToggle: (id: string) => void;
-  onAddChild: (parent: Account) => void;
-  canCreate: boolean;
-  depth: number;
-}) => {
+}: TreeRowProps) => {
   const isOpen = expanded.has(node.id);
   const hasChildren = node.children.length > 0;
+  const showMenu = canCreate || canEdit || canDelete;
 
   return (
     <li>
       <div
         className={cn(
-          "group flex items-center gap-2 py-2.5 pe-3 transition-base hover:bg-muted/40 rounded-md",
+          "group flex items-center gap-2 py-2.5 pe-2 transition-base hover:bg-muted/40 rounded-md",
         )}
         style={{ paddingInlineStart: `${depth * 24 + 12}px` }}
       >
@@ -182,20 +269,54 @@ const TreeRow = ({
             <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
           )}
         </button>
-        <span className="flex-1 truncate font-medium text-foreground">{node.name}</span>
-        <Badge variant="outline" className="font-mono text-xs tabular-nums">{node.code}</Badge>
-        <Badge variant="secondary" className="text-xs hidden sm:inline-flex">
-          {ACCOUNT_TYPE_LABELS_AR[node.type]}
-        </Badge>
-        {canCreate && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2"
-            onClick={() => onAddChild(node)}
-          >
-            <Plus className="h-3.5 w-3.5 ms-1" /> فرع
-          </Button>
+
+        <div className="flex-1 min-w-0 flex items-center gap-2">
+          <span className="truncate font-medium text-foreground">{node.name}</span>
+          <Badge variant="outline" className="font-mono text-xs tabular-nums shrink-0">
+            {node.code}
+          </Badge>
+          <Badge variant="secondary" className="text-xs hidden sm:inline-flex shrink-0">
+            {ACCOUNT_TYPE_LABELS_AR[node.type]}
+          </Badge>
+        </div>
+
+        {showMenu && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 opacity-60 hover:opacity-100"
+                aria-label="إجراءات الحساب"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              {canCreate && (
+                <DropdownMenuItem onClick={() => onAddChild(node)}>
+                  <Plus className="h-4 w-4 ms-2" />
+                  إضافة حساب فرعي
+                </DropdownMenuItem>
+              )}
+              {canEdit && (
+                <DropdownMenuItem onClick={() => onEdit(node)}>
+                  <Pencil className="h-4 w-4 ms-2" />
+                  تعديل
+                </DropdownMenuItem>
+              )}
+              {(canCreate || canEdit) && canDelete && <DropdownMenuSeparator />}
+              {canDelete && (
+                <DropdownMenuItem
+                  onClick={() => onDelete(node)}
+                  className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                >
+                  <Trash2 className="h-4 w-4 ms-2" />
+                  حذف
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
       {isOpen && hasChildren && (
@@ -207,7 +328,11 @@ const TreeRow = ({
               expanded={expanded}
               onToggle={onToggle}
               onAddChild={onAddChild}
+              onEdit={onEdit}
+              onDelete={onDelete}
               canCreate={canCreate}
+              canEdit={canEdit}
+              canDelete={canDelete}
               depth={depth + 1}
             />
           ))}
@@ -323,6 +448,99 @@ const NewAccountDialog = ({
           <Button onClick={handleSave} disabled={saving}>
             {saving && <Loader2 className="ms-2 h-4 w-4 animate-spin" />}
             حفظ
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const EditAccountDialog = ({
+  account,
+  onOpenChange,
+  currencies,
+  onSaved,
+}: {
+  account: Account | null;
+  onOpenChange: (v: boolean) => void;
+  currencies: Currency[];
+  onSaved: () => void;
+}) => {
+  const { toast } = useToast();
+  const [name, setName] = useState("");
+  const [currency, setCurrency] = useState("EGP");
+  const [notes, setNotes] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (account) {
+      setName(account.name);
+      setCurrency(account.currency);
+      setNotes(account.description ?? "");
+    }
+  }, [account]);
+
+  const handleSave = async () => {
+    if (!account) return;
+    if (!name.trim()) {
+      toast({ title: "أدخل اسم الحساب", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase
+      .from("accounts")
+      .update({
+        name: name.trim(),
+        currency,
+        description: notes.trim() || null,
+      } as never)
+      .eq("id", account.id);
+    setSaving(false);
+    if (error) {
+      toast({ title: "فشل تعديل الحساب", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "تم تحديث الحساب" });
+    onOpenChange(false);
+    onSaved();
+  };
+
+  return (
+    <Dialog open={!!account} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="font-display">تعديل الحساب</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label>الكود</Label>
+            <Input value={account?.code ?? ""} disabled className="font-mono tabular-nums" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-acc-name">اسم الحساب</Label>
+            <Input id="edit-acc-name" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label>العملة</Label>
+            <Select value={currency} onValueChange={setCurrency}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {currencies.map((c) => (
+                  <SelectItem key={c.code} value={c.code}>{c.name_ar} ({c.code})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-acc-notes">ملاحظات</Label>
+            <Textarea id="edit-acc-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>إلغاء</Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving && <Loader2 className="ms-2 h-4 w-4 animate-spin" />}
+            حفظ التعديلات
           </Button>
         </DialogFooter>
       </DialogContent>
