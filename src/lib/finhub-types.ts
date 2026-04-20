@@ -1,7 +1,6 @@
 // Domain types for FinHub. These mirror the SQL schema in `supabase/schema.sql`.
 
 export type AccountType = "asset" | "liability" | "equity" | "revenue" | "expense";
-export type PartnerType = "customer" | "supplier" | "both";
 export type JournalStatus = "posted";
 
 export type AppPermission =
@@ -14,10 +13,14 @@ export type AppPermission =
   | "journal.create"
   | "journal.edit"
   | "journal.delete"
-  | "partners.view"
-  | "partners.create"
-  | "partners.edit"
-  | "partners.delete"
+  | "customers.view"
+  | "customers.create"
+  | "customers.edit"
+  | "customers.delete"
+  | "suppliers.view"
+  | "suppliers.create"
+  | "suppliers.edit"
+  | "suppliers.delete"
   | "reports.view"
   | "users.manage"
   | "settings.manage";
@@ -63,20 +66,25 @@ export interface Account {
   created_by: string | null;
 }
 
-export interface Partner {
+export interface Customer {
   id: string;
   code: string;
-  name_ar: string;
-  partner_type: PartnerType;
+  name: string;
   phone: string | null;
   email: string | null;
   address: string | null;
   tax_number: string | null;
+  credit_limit: number;
+  opening_balance: number;
+  account_id: string | null;
   notes: string | null;
   is_active: boolean;
-  created_at: string;
   created_by: string | null;
+  created_at: string;
+  updated_at: string;
 }
+
+export type Supplier = Customer;
 
 export interface JournalEntry {
   id: string;
@@ -96,7 +104,8 @@ export interface JournalEntryLine {
   id: string;
   entry_id: string;
   account_id: string;
-  partner_id: string | null;
+  customer_id: string | null;
+  supplier_id: string | null;
   description: string | null;
   debit: number;
   credit: number;
@@ -123,10 +132,14 @@ export const PERMISSION_LABELS_AR: Record<AppPermission, string> = {
   "journal.create": "إنشاء قيود",
   "journal.edit": "تعديل القيود",
   "journal.delete": "حذف القيود",
-  "partners.view": "عرض العملاء والموردين",
-  "partners.create": "إنشاء عملاء وموردين",
-  "partners.edit": "تعديل العملاء والموردين",
-  "partners.delete": "حذف العملاء والموردين",
+  "customers.view": "عرض العملاء",
+  "customers.create": "إنشاء عملاء",
+  "customers.edit": "تعديل العملاء",
+  "customers.delete": "حذف العملاء",
+  "suppliers.view": "عرض الموردين",
+  "suppliers.create": "إنشاء موردين",
+  "suppliers.edit": "تعديل الموردين",
+  "suppliers.delete": "حذف الموردين",
   "reports.view": "عرض التقارير",
   "users.manage": "إدارة المستخدمين والصلاحيات",
   "settings.manage": "إدارة الإعدادات",
@@ -138,10 +151,4 @@ export const ACCOUNT_TYPE_LABELS_AR: Record<AccountType, string> = {
   equity: "حقوق ملكية",
   revenue: "إيرادات",
   expense: "مصروفات",
-};
-
-export const PARTNER_TYPE_LABELS_AR: Record<PartnerType, string> = {
-  customer: "عميل",
-  supplier: "مورد",
-  both: "عميل ومورد",
 };

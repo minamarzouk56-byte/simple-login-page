@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, FileText } from "lucide-react";
-import type { Partner } from "@/lib/finhub-types";
+import type { Customer } from "@/lib/finhub-types";
 
 interface StatementRow {
   date: string;
@@ -21,14 +21,18 @@ interface StatementRow {
 }
 
 interface Props {
-  partner: Partner | null;
+  partner: Customer | null;
+  kind: "customer" | "supplier";
   onOpenChange: (open: boolean) => void;
 }
 
-export const PartnerStatementDialog = ({ partner, onOpenChange }: Props) => {
+export const PartnerStatementDialog = ({ partner, kind, onOpenChange }: Props) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<StatementRow[]>([]);
+
+  const fkColumn = kind === "customer" ? "customer_id" : "supplier_id";
+  const openingBalance = Number(partner?.opening_balance ?? 0);
 
   useEffect(() => {
     if (!partner) {
@@ -42,7 +46,7 @@ export const PartnerStatementDialog = ({ partner, onOpenChange }: Props) => {
       const { data: lines, error } = await supabase
         .from("journal_entry_lines")
         .select("id, account_id, debit, credit, description, currency_code, exchange_rate, entry_id")
-        .eq("partner_id", partner.id);
+        .eq(fkColumn, partner.id);
 
       if (error) {
         toast({ title: "تعذر تحميل كشف الحساب", description: error.message, variant: "destructive" });
@@ -56,10 +60,10 @@ export const PartnerStatementDialog = ({ partner, onOpenChange }: Props) => {
       const [entriesRes, accountsRes] = await Promise.all([
         entryIds.length
           ? supabase.from("journal_entries").select("id, entry_date, entry_number, reference, description").in("id", entryIds)
-          : Promise.resolve({ data: [] as any[] }),
+          : Promise.resolve({ data: [] as never[] }),
         accountIds.length
           ? supabase.from("accounts").select("id, code, name").in("id", accountIds)
-          : Promise.resolve({ data: [] as any[] }),
+          : Promise.resolve({ data: [] as never[] }),
       ]);
 
       const entriesMap = new Map((entriesRes.data ?? []).map((e: any) => [e.id, e]));
@@ -89,13 +93,13 @@ export const PartnerStatementDialog = ({ partner, onOpenChange }: Props) => {
     };
 
     load();
-  }, [partner, toast]);
+  }, [partner, fkColumn, toast]);
 
   const totals = useMemo(() => {
     const debit = rows.reduce((s, r) => s + r.debit, 0);
     const credit = rows.reduce((s, r) => s + r.credit, 0);
-    return { debit, credit, balance: debit - credit };
-  }, [rows]);
+    return { debit, credit, balance: openingBalance + debit - credit };
+  }, [rows, openingBalance]);
 
   const fmt = (n: number) => n.toLocaleString("ar-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -105,7 +109,7 @@ export const PartnerStatementDialog = ({ partner, onOpenChange }: Props) => {
         <DialogHeader>
           <DialogTitle className="font-display flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
-            كشف حساب: {partner?.name_ar}
+            كشف حساب: {partner?.name}
             {partner && <Badge variant="outline" className="font-mono text-xs">{partner.code}</Badge>}
           </DialogTitle>
         </DialogHeader>
@@ -133,9 +137,13 @@ export const PartnerStatementDialog = ({ partner, onOpenChange }: Props) => {
               <TableBody>
                 <TableRow className="bg-muted/30 font-medium">
                   <TableCell colSpan={6}>رصيد افتتاحي</TableCell>
-                  <TableCell className="text-end tabular-nums">-</TableCell>
-                  <TableCell className="text-end tabular-nums">-</TableCell>
-                  <TableCell className="text-end tabular-nums font-semibold">{fmt(0)}</TableCell>
+                  <TableCell className="text-end tabular-nums">
+                    {openingBalance > 0 ? fmt(openingBalance) : "-"}
+                  </TableCell>
+                  <TableCell className="text-end tabular-nums">
+                    {openingBalance < 0 ? fmt(-openingBalance) : "-"}
+                  </TableCell>
+                  <TableCell className="text-end tabular-nums font-semibold">{fmt(openingBalance)}</TableCell>
                 </TableRow>
 
                 {rows.length === 0 ? (
@@ -146,7 +154,7 @@ export const PartnerStatementDialog = ({ partner, onOpenChange }: Props) => {
                   </TableRow>
                 ) : (
                   rows.map((r, i) => {
-                    const running = rows.slice(0, i + 1).reduce((s, x) => s + x.debit - x.credit, 0);
+                    const running = openingBalance + rows.slice(0, i + 1).reduce((s, x) => s + x.debit - x.credit, 0);
                     return (
                       <TableRow key={i}>
                         <TableCell className="tabular-nums whitespace-nowrap">{r.date}</TableCell>

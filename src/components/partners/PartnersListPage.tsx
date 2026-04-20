@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Plus, Loader2, MoreHorizontal, FileText, Pencil, Trash2, Search, X, type LucideIcon } from "lucide-react";
-import type { Partner, PartnerType } from "@/lib/finhub-types";
+import type { Customer, AppPermission } from "@/lib/finhub-types";
 import { PartnerFormDialog } from "./PartnerFormDialog";
 import { PartnerStatementDialog } from "./PartnerStatementDialog";
 
@@ -38,52 +38,50 @@ interface Props {
 export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabel }: Props) => {
   const { hasPermission } = useAuth();
   const { toast } = useToast();
-  const [partners, setPartners] = useState<Partner[]>([]);
-  const [balances, setBalances] = useState<Record<string, number>>({});
+  const [items, setItems] = useState<Customer[]>([]);
+  const [movements, setMovements] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<Partner | null>(null);
-  const [statementPartner, setStatementPartner] = useState<Partner | null>(null);
-  const [deletingPartner, setDeletingPartner] = useState<Partner | null>(null);
+  const [editing, setEditing] = useState<Customer | null>(null);
+  const [statementPartner, setStatementPartner] = useState<Customer | null>(null);
+  const [deletingPartner, setDeletingPartner] = useState<Customer | null>(null);
 
-  const canCreate = hasPermission("partners.create");
-  const canEdit = hasPermission("partners.edit");
-  const canDelete = hasPermission("partners.delete");
+  const table = kind === "customer" ? "customers" : "suppliers";
+  const fkColumn = kind === "customer" ? "customer_id" : "supplier_id";
+  const permPrefix = kind === "customer" ? "customers" : "suppliers";
 
-  const matchTypes: PartnerType[] = kind === "customer" ? ["customer", "both"] : ["supplier", "both"];
+  const canCreate = hasPermission(`${permPrefix}.create` as AppPermission);
+  const canEdit = hasPermission(`${permPrefix}.edit` as AppPermission);
+  const canDelete = hasPermission(`${permPrefix}.delete` as AppPermission);
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("partners")
-      .select("*")
-      .in("partner_type", matchTypes)
-      .order("code");
+    const { data, error } = await supabase.from(table).select("*").order("code");
     if (error) {
       toast({ title: "فشل التحميل", description: error.message, variant: "destructive" });
       setLoading(false);
       return;
     }
-    const list = (data ?? []) as Partner[];
-    setPartners(list);
+    const list = (data ?? []) as unknown as Customer[];
+    setItems(list);
 
-    // Load balances
     const ids = list.map((p) => p.id);
     if (ids.length) {
       const { data: lines } = await supabase
         .from("journal_entry_lines")
-        .select("partner_id, debit, credit")
-        .in("partner_id", ids);
+        .select(`${fkColumn}, debit, credit`)
+        .in(fkColumn, ids);
       const map: Record<string, number> = {};
       (lines ?? []).forEach((l: any) => {
-        if (!l.partner_id) return;
-        map[l.partner_id] = (map[l.partner_id] ?? 0) + (Number(l.debit) || 0) - (Number(l.credit) || 0);
+        const pid = l[fkColumn];
+        if (!pid) return;
+        map[pid] = (map[pid] ?? 0) + (Number(l.debit) || 0) - (Number(l.credit) || 0);
       });
-      setBalances(map);
+      setMovements(map);
     } else {
-      setBalances({});
+      setMovements({});
     }
     setLoading(false);
   };
@@ -95,24 +93,24 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return partners;
-    return partners.filter(
+    if (!q) return items;
+    return items.filter(
       (p) =>
-        p.name_ar.toLowerCase().includes(q) ||
+        p.name.toLowerCase().includes(q) ||
         p.code.toLowerCase().includes(q) ||
         (p.phone ?? "").toLowerCase().includes(q) ||
         (p.email ?? "").toLowerCase().includes(q),
     );
-  }, [partners, search]);
+  }, [items, search]);
 
   const fmt = (n: number) => n.toLocaleString("ar-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const openNew = () => { setEditing(null); setFormOpen(true); };
-  const openEdit = (p: Partner) => { setEditing(p); setFormOpen(true); };
+  const openEdit = (p: Customer) => { setEditing(p); setFormOpen(true); };
 
   const handleDelete = async () => {
     if (!deletingPartner) return;
-    const { error } = await supabase.from("partners").delete().eq("id", deletingPartner.id);
+    const { error } = await supabase.from(table).delete().eq("id", deletingPartner.id);
     if (error) {
       toast({ title: "تعذر الحذف", description: error.message, variant: "destructive" });
     } else {
@@ -177,19 +175,23 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
                     <th className="px-4 py-3 text-right font-medium">الاسم</th>
                     <th className="px-4 py-3 text-right font-medium">الهاتف</th>
                     <th className="px-4 py-3 text-right font-medium">البريد</th>
+                    <th className="px-4 py-3 text-end font-medium">حد الائتمان</th>
                     <th className="px-4 py-3 text-end font-medium">الرصيد</th>
                     <th className="px-4 py-3 text-end font-medium w-32">الإجراءات</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {filtered.map((p) => {
-                    const balance = balances[p.id] ?? 0;
+                    const balance = (Number(p.opening_balance) || 0) + (movements[p.id] ?? 0);
                     return (
                       <tr key={p.id} className="hover:bg-muted/30 transition-base">
                         <td className="px-4 py-3 font-mono text-xs tabular-nums text-muted-foreground">{p.code}</td>
-                        <td className="px-4 py-3 font-medium">{p.name_ar}</td>
+                        <td className="px-4 py-3 font-medium">{p.name}</td>
                         <td className="px-4 py-3 text-muted-foreground" dir="ltr">{p.phone ?? "—"}</td>
                         <td className="px-4 py-3 text-muted-foreground" dir="ltr">{p.email ?? "—"}</td>
+                        <td className="px-4 py-3 text-end tabular-nums text-muted-foreground">
+                          {Number(p.credit_limit) > 0 ? fmt(Number(p.credit_limit)) : "—"}
+                        </td>
                         <td
                           className={
                             "px-4 py-3 text-end tabular-nums font-semibold " +
@@ -254,12 +256,13 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
         open={formOpen}
         onOpenChange={setFormOpen}
         partner={editing}
-        defaultType={kind}
+        kind={kind}
         onSaved={load}
       />
 
       <PartnerStatementDialog
         partner={statementPartner}
+        kind={kind}
         onOpenChange={(v) => !v && setStatementPartner(null)}
       />
 
@@ -268,7 +271,7 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
           <AlertDialogHeader>
             <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
             <AlertDialogDescription>
-              هل أنت متأكد من حذف <span className="font-semibold">{deletingPartner?.name_ar}</span>؟
+              هل أنت متأكد من حذف <span className="font-semibold">{deletingPartner?.name}</span>؟
               لا يمكن التراجع عن هذا الإجراء.
             </AlertDialogDescription>
           </AlertDialogHeader>
