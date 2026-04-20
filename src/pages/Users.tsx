@@ -368,7 +368,6 @@ const EditPermissionsDialog = ({
   const toggleView = (group: PermissionGroup, checked: boolean) => {
     setPerms((prev) => {
       const next = new Set(prev);
-      if (!group.view) return next;
       if (checked) {
         next.add(group.view);
       } else {
@@ -385,7 +384,7 @@ const EditPermissionsDialog = ({
       const next = new Set(prev);
       if (checked) {
         // Auto-enable parent view if needed
-        if (group.view) next.add(group.view);
+        next.add(group.view);
         next.add(perm);
       } else {
         next.delete(perm);
