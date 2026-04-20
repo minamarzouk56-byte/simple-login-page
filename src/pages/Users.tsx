@@ -450,8 +450,9 @@ const EditPermissionsDialog = ({
 
         <div className="space-y-3 py-2">
           {PERMISSION_GROUPS.map((group) => {
-            const viewEnabled = group.view ? perms.has(group.view) : true;
+            const viewEnabled = perms.has(group.view);
             const childrenEnabled = group.children.filter((c) => perms.has(c)).length;
+            const hasChildren = group.children.length > 0;
 
             return (
               <div
@@ -461,57 +462,66 @@ const EditPermissionsDialog = ({
                   viewEnabled ? "bg-card" : "bg-muted/30",
                 )}
               >
-                {/* Group header / parent toggle */}
-                <div className="flex items-center justify-between gap-3 p-3 border-b border-border">
+                {/* Group header / parent toggle = page access */}
+                <div
+                  className={cn(
+                    "flex items-center justify-between gap-3 p-3",
+                    hasChildren && "border-b border-border",
+                  )}
+                >
                   <div className="flex items-center gap-3 min-w-0">
-                    {group.view ? (
-                      <Checkbox
-                        id={`grp-${group.key}`}
-                        checked={viewEnabled}
-                        onCheckedChange={(v) => toggleView(group, !!v)}
-                      />
-                    ) : (
-                      <div className="h-4 w-4" />
-                    )}
+                    <Checkbox
+                      id={`grp-${group.key}`}
+                      checked={viewEnabled}
+                      onCheckedChange={(v) => toggleView(group, !!v)}
+                    />
                     <label
-                      htmlFor={group.view ? `grp-${group.key}` : undefined}
+                      htmlFor={`grp-${group.key}`}
                       className="font-semibold cursor-pointer select-none"
                     >
                       {group.label}
                     </label>
+                    {!hasChildren && (
+                      <Badge variant="secondary" className="text-[10px] font-normal">
+                        وصول فقط
+                      </Badge>
+                    )}
                   </div>
-                  <Badge variant="outline" className="text-xs tabular-nums shrink-0">
-                    {childrenEnabled + (group.view && viewEnabled ? 1 : 0)} /{" "}
-                    {group.children.length + (group.view ? 1 : 0)}
-                  </Badge>
+                  {hasChildren && (
+                    <Badge variant="outline" className="text-xs tabular-nums shrink-0">
+                      {childrenEnabled + (viewEnabled ? 1 : 0)} / {group.children.length + 1}
+                    </Badge>
+                  )}
                 </div>
 
-                {/* Sub-permissions */}
-                <ul className="grid gap-1 p-2 sm:grid-cols-2">
-                  {group.children.map((perm) => {
-                    const checked = perms.has(perm);
-                    const disabled = !viewEnabled;
-                    return (
-                      <li key={perm}>
-                        <label
-                          className={cn(
-                            "flex items-center gap-3 rounded-md px-3 py-2 transition-base",
-                            disabled
-                              ? "opacity-50 cursor-not-allowed"
-                              : "hover:bg-muted/40 cursor-pointer",
-                          )}
-                        >
-                          <Checkbox
-                            checked={checked && !disabled}
-                            disabled={disabled}
-                            onCheckedChange={(v) => toggleChild(group, perm, !!v)}
-                          />
-                          <span className="text-sm flex-1">{PERMISSION_LABELS_AR[perm]}</span>
-                        </label>
-                      </li>
-                    );
-                  })}
-                </ul>
+                {/* Sub-permissions (page actions) */}
+                {hasChildren && (
+                  <ul className="grid gap-1 p-2 sm:grid-cols-2">
+                    {group.children.map((perm) => {
+                      const checked = perms.has(perm);
+                      const disabled = !viewEnabled;
+                      return (
+                        <li key={perm}>
+                          <label
+                            className={cn(
+                              "flex items-center gap-3 rounded-md px-3 py-2 transition-base",
+                              disabled
+                                ? "opacity-50 cursor-not-allowed"
+                                : "hover:bg-muted/40 cursor-pointer",
+                            )}
+                          >
+                            <Checkbox
+                              checked={checked && !disabled}
+                              disabled={disabled}
+                              onCheckedChange={(v) => toggleChild(group, perm, !!v)}
+                            />
+                            <span className="text-sm flex-1">{PERMISSION_LABELS_AR[perm]}</span>
+                          </label>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </div>
             );
           })}
