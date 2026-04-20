@@ -66,20 +66,28 @@ import {
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------
-// Permission groups: a "view" permission is the parent gate. Without it,
-// the create/edit/delete sub-permissions cannot be granted.
+// Permission groups — mirror the sidebar 1:1.
+// Each group represents a sidebar page. The "view" permission gates
+// access to the page; child permissions are page-specific actions and
+// require the parent view to be enabled.
 // ---------------------------------------------------------------------
 interface PermissionGroup {
   key: string;
   label: string;
-  view: AppPermission | null; // null = standalone group with no parent gate
+  view: AppPermission; // parent gate — required for any child action
   children: AppPermission[];
 }
 
 const PERMISSION_GROUPS: PermissionGroup[] = [
   {
+    key: "dashboard",
+    label: "لوحة التحكم",
+    view: "dashboard.view",
+    children: [],
+  },
+  {
     key: "accounts",
-    label: "الحسابات",
+    label: "شجرة الحسابات",
     view: "accounts.view",
     children: ["accounts.create", "accounts.edit", "accounts.delete"],
   },
@@ -96,16 +104,26 @@ const PERMISSION_GROUPS: PermissionGroup[] = [
     children: ["partners.create", "partners.edit", "partners.delete"],
   },
   {
-    key: "system",
-    label: "النظام",
-    view: null,
-    children: ["reports.view", "users.manage", "settings.manage"],
+    key: "reports",
+    label: "التقارير المالية",
+    view: "reports.view",
+    children: [],
+  },
+  {
+    key: "users",
+    label: "المستخدمون والصلاحيات",
+    view: "users.manage",
+    children: [],
+  },
+  {
+    key: "settings",
+    label: "الإعدادات",
+    view: "settings.manage",
+    children: [],
   },
 ];
 
-const ALL_PERMISSIONS = PERMISSION_GROUPS.flatMap((g) =>
-  g.view ? [g.view, ...g.children] : g.children,
-) as AppPermission[];
+const ALL_PERMISSIONS = PERMISSION_GROUPS.flatMap((g) => [g.view, ...g.children]) as AppPermission[];
 
 const Users = () => {
   const { toast } = useToast();
