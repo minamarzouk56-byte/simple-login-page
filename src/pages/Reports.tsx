@@ -36,13 +36,14 @@ const Reports = () => {
   }, [toast]);
 
   const balances = useMemo<AccountBalance[]>(() => {
+    const parentIds = new Set(accounts.map((a) => a.parent_id).filter(Boolean) as string[]);
     return accounts
-      .filter((a) => a.is_leaf)
+      .filter((a) => !parentIds.has(a.id))
       .map((account) => {
         const acctLines = lines.filter((l) => l.account_id === account.id);
         const debit = acctLines.reduce((s, l) => s + Number(l.debit), 0);
         const credit = acctLines.reduce((s, l) => s + Number(l.credit), 0);
-        const balance = ["asset", "expense"].includes(account.account_type) ? debit - credit : credit - debit;
+        const balance = ["asset", "expense"].includes(account.type) ? debit - credit : credit - debit;
         return { account, debit, credit, balance };
       });
   }, [accounts, lines]);
