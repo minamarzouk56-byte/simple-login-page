@@ -77,6 +77,7 @@ export interface Customer {
   credit_limit: number;
   opening_balance: number;
   account_id: string | null;
+  currency: string;
   notes: string | null;
   is_active: boolean;
   created_by: string | null;
