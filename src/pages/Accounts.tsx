@@ -182,10 +182,10 @@ const TreeRow = ({
             <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
           )}
         </button>
-        <span className="font-mono text-xs tabular-nums text-muted-foreground w-14 shrink-0">{node.code}</span>
-        <span className="flex-1 truncate font-medium text-foreground">{node.name_ar}</span>
+        <span className="flex-1 truncate font-medium text-foreground">{node.name}</span>
+        <Badge variant="outline" className="font-mono text-xs tabular-nums">{node.code}</Badge>
         <Badge variant="secondary" className="text-xs hidden sm:inline-flex">
-          {ACCOUNT_TYPE_LABELS_AR[node.account_type]}
+          {ACCOUNT_TYPE_LABELS_AR[node.type]}
         </Badge>
         {canCreate && (
           <Button
@@ -241,8 +241,8 @@ const NewAccountDialog = ({
     if (open) {
       setName("");
       setNotes("");
-      setType(parent?.account_type ?? "asset");
-      setCurrency(parent?.currency_code ?? "EGP");
+      setType(parent?.type ?? "asset");
+      setCurrency(parent?.currency ?? "EGP");
     }
   }, [open, parent]);
 
@@ -253,11 +253,11 @@ const NewAccountDialog = ({
     }
     setSaving(true);
     const { error } = await supabase.from("accounts").insert({
-      name_ar: name.trim(),
-      account_type: type,
+      name: name.trim(),
+      type,
       parent_id: parent?.id ?? null,
-      currency_code: currency,
-      notes: notes.trim() || null,
+      currency,
+      description: notes.trim() || null,
     } as never);
     setSaving(false);
     if (error) {
@@ -274,7 +274,7 @@ const NewAccountDialog = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="font-display">
-            {parent ? `حساب فرعي تحت: ${parent.name_ar}` : "حساب رئيسي جديد"}
+            {parent ? `حساب فرعي تحت: ${parent.name}` : "حساب رئيسي جديد"}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">

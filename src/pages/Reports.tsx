@@ -36,13 +36,14 @@ const Reports = () => {
   }, [toast]);
 
   const balances = useMemo<AccountBalance[]>(() => {
+    const parentIds = new Set(accounts.map((a) => a.parent_id).filter(Boolean) as string[]);
     return accounts
-      .filter((a) => a.is_leaf)
+      .filter((a) => !parentIds.has(a.id))
       .map((account) => {
         const acctLines = lines.filter((l) => l.account_id === account.id);
         const debit = acctLines.reduce((s, l) => s + Number(l.debit), 0);
         const credit = acctLines.reduce((s, l) => s + Number(l.credit), 0);
-        const balance = ["asset", "expense"].includes(account.account_type) ? debit - credit : credit - debit;
+        const balance = ["asset", "expense"].includes(account.type) ? debit - credit : credit - debit;
         return { account, debit, credit, balance };
       });
   }, [accounts, lines]);
@@ -51,7 +52,7 @@ const Reports = () => {
 
   const totalsByType = useMemo(() => {
     const totals: Record<AccountType, number> = { asset: 0, liability: 0, equity: 0, revenue: 0, expense: 0 };
-    balances.forEach((b) => { totals[b.account.account_type] += b.balance; });
+    balances.forEach((b) => { totals[b.account.type] += b.balance; });
     return totals;
   }, [balances]);
 
@@ -97,7 +98,7 @@ const Reports = () => {
                       {trialBalance.map((b) => (
                         <tr key={b.account.id}>
                           <td className="px-4 py-2.5 font-mono text-xs tabular-nums text-muted-foreground">{b.account.code}</td>
-                          <td className="px-4 py-2.5">{b.account.name_ar}</td>
+                          <td className="px-4 py-2.5">{b.account.name}</td>
                           <td className="px-4 py-2.5 text-end tabular-nums">{b.debit.toLocaleString("ar-EG", { minimumFractionDigits: 2 })}</td>
                           <td className="px-4 py-2.5 text-end tabular-nums">{b.credit.toLocaleString("ar-EG", { minimumFractionDigits: 2 })}</td>
                           <td className="px-4 py-2.5 text-end tabular-nums font-semibold">{b.balance.toLocaleString("ar-EG", { minimumFractionDigits: 2 })}</td>
@@ -165,7 +166,7 @@ const Reports = () => {
 const ReportSection = ({
   title, type, balances,
 }: { title: string; type: AccountType; balances: AccountBalance[] }) => {
-  const items = balances.filter((b) => b.account.account_type === type && b.balance !== 0);
+  const items = balances.filter((b) => b.account.type === type && b.balance !== 0);
   const total = items.reduce((s, i) => s + i.balance, 0);
   return (
     <div>
@@ -179,7 +180,7 @@ const ReportSection = ({
           <div key={i.account.id} className="flex items-center justify-between py-1.5 text-sm">
             <span className="text-foreground">
               <span className="font-mono text-xs text-muted-foreground ms-2">{i.account.code}</span>
-              {i.account.name_ar}
+              {i.account.name}
             </span>
             <span className="tabular-nums">{i.balance.toLocaleString("ar-EG", { minimumFractionDigits: 2 })}</span>
           </div>

@@ -253,7 +253,7 @@ const NewJournalDialog = ({
                         <SelectContent>
                           {accounts.map((a) => (
                             <SelectItem key={a.id} value={a.id}>
-                              <span className="font-mono text-xs ms-2">{a.code}</span> {a.name_ar}
+                              <span className="font-mono text-xs ms-2">{a.code}</span> {a.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
