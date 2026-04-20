@@ -12,7 +12,8 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Accounts from "./pages/Accounts";
 import Journal from "./pages/Journal";
-import Partners from "./pages/Partners";
+import Customers from "./pages/Customers";
+import Suppliers from "./pages/Suppliers";
 import Reports from "./pages/Reports";
 import Users from "./pages/Users";
 import NotFound from "./pages/NotFound";
@@ -39,7 +40,8 @@ const App = () => (
               <Route path="/" element={<ProtectedRoute requirePermission="dashboard.view"><Dashboard /></ProtectedRoute>} />
               <Route path="/accounts" element={<ProtectedRoute requirePermission="accounts.view"><Accounts /></ProtectedRoute>} />
               <Route path="/journal" element={<ProtectedRoute requirePermission="journal.view"><Journal /></ProtectedRoute>} />
-              <Route path="/partners" element={<ProtectedRoute requirePermission="partners.view"><Partners /></ProtectedRoute>} />
+              <Route path="/customers" element={<ProtectedRoute requirePermission="partners.view"><Customers /></ProtectedRoute>} />
+              <Route path="/suppliers" element={<ProtectedRoute requirePermission="partners.view"><Suppliers /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute requirePermission="reports.view"><Reports /></ProtectedRoute>} />
               <Route path="/users" element={<ProtectedRoute requirePermission="users.manage"><Users /></ProtectedRoute>} />
             </Route>

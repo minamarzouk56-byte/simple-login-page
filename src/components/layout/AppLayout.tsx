@@ -8,6 +8,7 @@ import {
   Network,
   BookOpen,
   Users,
+  Truck,
   BarChart3,
   Shield,
   ChevronLeft,
@@ -25,7 +26,8 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/", label: "لوحة التحكم", icon: LayoutDashboard, permission: "dashboard.view" },
   { to: "/accounts", label: "شجرة الحسابات", icon: Network, permission: "accounts.view" },
   { to: "/journal", label: "القيود اليومية", icon: BookOpen, permission: "journal.view" },
-  { to: "/partners", label: "العملاء والموردين", icon: Users, permission: "partners.view" },
+  { to: "/customers", label: "العملاء", icon: Users, permission: "partners.view" },
+  { to: "/suppliers", label: "الموردين", icon: Truck, permission: "partners.view" },
   { to: "/reports", label: "التقارير المالية", icon: BarChart3, permission: "reports.view" },
   { to: "/users", label: "المستخدمون والصلاحيات", icon: Shield, permission: "users.manage" },
 ];

@@ -46,20 +46,19 @@ export const PartnerFormDialog = ({ open, onOpenChange, partner, defaultType, on
       return;
     }
     setSaving(true);
-    const payload: Record<string, unknown> = {
+    const base = {
       name_ar: name.trim(),
       phone: phone.trim() || null,
       email: email.trim() || null,
       address: address.trim() || null,
       tax_number: taxNumber.trim() || null,
       notes: notes.trim() || null,
+      ...(code.trim() ? { code: code.trim() } : {}),
     };
-    if (code.trim()) payload.code = code.trim();
-    if (!partner) payload.partner_type = defaultType;
 
     const { error } = partner
-      ? await supabase.from("partners").update(payload).eq("id", partner.id)
-      : await supabase.from("partners").insert(payload as never);
+      ? await supabase.from("partners").update(base).eq("id", partner.id)
+      : await supabase.from("partners").insert({ ...base, partner_type: defaultType } as never);
     setSaving(false);
     if (error) {
       toast({ title: "فشل الحفظ", description: error.message, variant: "destructive" });
