@@ -253,11 +253,11 @@ const NewAccountDialog = ({
     }
     setSaving(true);
     const { error } = await supabase.from("accounts").insert({
-      name_ar: name.trim(),
-      account_type: type,
+      name: name.trim(),
+      type,
       parent_id: parent?.id ?? null,
-      currency_code: currency,
-      notes: notes.trim() || null,
+      currency,
+      description: notes.trim() || null,
     } as never);
     setSaving(false);
     if (error) {
