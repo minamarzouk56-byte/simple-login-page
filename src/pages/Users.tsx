@@ -169,7 +169,7 @@ const Users = () => {
   );
 };
 
-const SUPABASE_URL = "https://yalpedyrzxmiwmvqrkmq.supabase.co";
+
 
 const CreateUserDialog = ({
   open, onOpenChange, onCreated,
@@ -207,30 +207,17 @@ const CreateUserDialog = ({
       return;
     }
     setSubmitting(true);
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      setSubmitting(false);
-      toast({ title: "انتهت الجلسة", description: "سجّل دخولك من جديد.", variant: "destructive" });
-      return;
-    }
-
     try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-create-user`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke("admin-create-user", {
+        body: {
           email: email.trim().toLowerCase(),
           full_name: fullName.trim(),
           password,
           permissions: Array.from(perms),
-        }),
+        },
       });
-      const body = await res.json();
-      if (!res.ok || body.error) {
-        toast({ title: "فشل إنشاء المستخدم", description: body.error ?? "خطأ غير معروف", variant: "destructive" });
+      if (error || (data as any)?.error) {
+        toast({ title: "فشل إنشاء المستخدم", description: error?.message ?? (data as any)?.error ?? "خطأ غير معروف", variant: "destructive" });
       } else {
         setSuccess({ email: email.trim().toLowerCase(), password });
         onCreated();
