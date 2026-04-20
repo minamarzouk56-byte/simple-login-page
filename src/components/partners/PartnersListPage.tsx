@@ -22,10 +22,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Loader2, MoreHorizontal, FileText, Pencil, Trash2, Search, X, type LucideIcon } from "lucide-react";
+import { Plus, Loader2, MoreHorizontal, FileText, Pencil, Trash2, Search, X, ArrowUp, ArrowDown, ArrowUpDown, type LucideIcon } from "lucide-react";
 import type { Customer, AppPermission } from "@/lib/finhub-types";
 import { PartnerFormDialog } from "./PartnerFormDialog";
 import { PartnerStatementDialog } from "./PartnerStatementDialog";
+import { PartnerOperationsMenu } from "./PartnerOperationsMenu";
+
+type SortKey = "code" | "name" | "account" | "credit_limit" | "balance";
+type SortDir = "asc" | "desc";
 
 interface Props {
   kind: "customer" | "supplier";
