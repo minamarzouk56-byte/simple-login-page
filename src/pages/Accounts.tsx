@@ -217,29 +217,40 @@ function buildTree(items: Account[]): TreeNode[] {
   return roots;
 }
 
+interface TreeRowProps {
+  node: TreeNode;
+  expanded: Set<string>;
+  onToggle: (id: string) => void;
+  onAddChild: (parent: Account) => void;
+  onEdit: (account: Account) => void;
+  onDelete: (account: Account) => void;
+  canCreate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  depth: number;
+}
+
 const TreeRow = ({
   node,
   expanded,
   onToggle,
   onAddChild,
+  onEdit,
+  onDelete,
   canCreate,
+  canEdit,
+  canDelete,
   depth,
-}: {
-  node: TreeNode;
-  expanded: Set<string>;
-  onToggle: (id: string) => void;
-  onAddChild: (parent: Account) => void;
-  canCreate: boolean;
-  depth: number;
-}) => {
+}: TreeRowProps) => {
   const isOpen = expanded.has(node.id);
   const hasChildren = node.children.length > 0;
+  const showMenu = canCreate || canEdit || canDelete;
 
   return (
     <li>
       <div
         className={cn(
-          "group flex items-center gap-2 py-2.5 pe-3 transition-base hover:bg-muted/40 rounded-md",
+          "group flex items-center gap-2 py-2.5 pe-2 transition-base hover:bg-muted/40 rounded-md",
         )}
         style={{ paddingInlineStart: `${depth * 24 + 12}px` }}
       >
@@ -258,20 +269,54 @@ const TreeRow = ({
             <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
           )}
         </button>
-        <span className="flex-1 truncate font-medium text-foreground">{node.name}</span>
-        <Badge variant="outline" className="font-mono text-xs tabular-nums">{node.code}</Badge>
-        <Badge variant="secondary" className="text-xs hidden sm:inline-flex">
-          {ACCOUNT_TYPE_LABELS_AR[node.type]}
-        </Badge>
-        {canCreate && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2"
-            onClick={() => onAddChild(node)}
-          >
-            <Plus className="h-3.5 w-3.5 ms-1" /> فرع
-          </Button>
+
+        <div className="flex-1 min-w-0 flex items-center gap-2">
+          <span className="truncate font-medium text-foreground">{node.name}</span>
+          <Badge variant="outline" className="font-mono text-xs tabular-nums shrink-0">
+            {node.code}
+          </Badge>
+          <Badge variant="secondary" className="text-xs hidden sm:inline-flex shrink-0">
+            {ACCOUNT_TYPE_LABELS_AR[node.type]}
+          </Badge>
+        </div>
+
+        {showMenu && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 opacity-60 hover:opacity-100"
+                aria-label="إجراءات الحساب"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              {canCreate && (
+                <DropdownMenuItem onClick={() => onAddChild(node)}>
+                  <Plus className="h-4 w-4 ms-2" />
+                  إضافة حساب فرعي
+                </DropdownMenuItem>
+              )}
+              {canEdit && (
+                <DropdownMenuItem onClick={() => onEdit(node)}>
+                  <Pencil className="h-4 w-4 ms-2" />
+                  تعديل
+                </DropdownMenuItem>
+              )}
+              {(canCreate || canEdit) && canDelete && <DropdownMenuSeparator />}
+              {canDelete && (
+                <DropdownMenuItem
+                  onClick={() => onDelete(node)}
+                  className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                >
+                  <Trash2 className="h-4 w-4 ms-2" />
+                  حذف
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
       {isOpen && hasChildren && (
@@ -283,7 +328,11 @@ const TreeRow = ({
               expanded={expanded}
               onToggle={onToggle}
               onAddChild={onAddChild}
+              onEdit={onEdit}
+              onDelete={onDelete}
               canCreate={canCreate}
+              canEdit={canEdit}
+              canDelete={canDelete}
               depth={depth + 1}
             />
           ))}
