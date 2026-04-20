@@ -23,9 +23,15 @@ export type AppPermission =
 
 export interface Profile {
   id: string;
+  user_id: string;
   full_name: string | null;
+  job_title: string | null;
+  phone: string | null;
+  avatar_url: string | null;
   is_admin: boolean;
+  force_password_change: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 export interface Currency {
