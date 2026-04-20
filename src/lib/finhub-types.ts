@@ -5,6 +5,7 @@ export type PartnerType = "customer" | "supplier" | "both";
 export type JournalStatus = "posted";
 
 export type AppPermission =
+  | "dashboard.view"
   | "accounts.view"
   | "accounts.create"
   | "accounts.edit"
