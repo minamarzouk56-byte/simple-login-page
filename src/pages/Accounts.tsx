@@ -27,8 +27,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronLeft, Plus, Loader2, FolderTree, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronLeft, Plus, Loader2, FolderTree, MoreHorizontal, Pencil, Trash2, FileText } from "lucide-react";
 import { ACCOUNT_TYPE_LABELS_AR, type Account, type AccountType, type Currency } from "@/lib/finhub-types";
+import { ACCOUNT_TYPE_STYLES } from "@/components/accounts/account-styles";
+import { AccountStatementDialog } from "@/components/accounts/AccountStatementDialog";
 import { cn } from "@/lib/utils";
 
 interface TreeNode extends Account {
