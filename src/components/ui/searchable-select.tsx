@@ -87,6 +87,8 @@ export const SearchableSelect = ({
         side="bottom"
         sideOffset={4}
         avoidCollisions={false}
+        onWheel={(e) => e.stopPropagation()}
+        onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <Command
           filter={(itemValue, search) => {
@@ -96,7 +98,10 @@ export const SearchableSelect = ({
           }}
         >
           <CommandInput placeholder={searchPlaceholder} />
-          <CommandList className="max-h-[260px]">
+          <CommandList
+            className="max-h-[260px] overflow-y-auto overscroll-contain"
+            onWheel={(e) => e.stopPropagation()}
+          >
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
               {options.map((opt) => (
