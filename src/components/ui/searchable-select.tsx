@@ -81,7 +81,13 @@ export const SearchableSelect = ({
           </span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0 w-[--radix-popover-trigger-width] min-w-[260px]" align="start">
+      <PopoverContent
+        className="p-0 w-[--radix-popover-trigger-width] min-w-[260px]"
+        align="start"
+        side="bottom"
+        sideOffset={4}
+        avoidCollisions={false}
+      >
         <Command
           filter={(itemValue, search) => {
             const opt = options.find((o) => o.value === itemValue);
@@ -90,7 +96,7 @@ export const SearchableSelect = ({
           }}
         >
           <CommandInput placeholder={searchPlaceholder} />
-          <CommandList>
+          <CommandList className="max-h-[260px]">
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
               {options.map((opt) => (
