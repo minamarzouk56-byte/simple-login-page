@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Plus, Loader2, BookOpen, Trash2, X } from "lucide-react";
-import type { Account, JournalEntry, JournalEntryLine, Partner, Currency } from "@/lib/finhub-types";
+import type { Account, JournalEntry, JournalEntryLine, Customer, Supplier, Currency } from "@/lib/finhub-types";
 
 interface LineDraft {
   account_id: string;
-  partner_id: string | null;
+  customer_id: string | null;
+  supplier_id: string | null;
   description: string;
   debit: string;
   credit: string;
@@ -106,11 +107,12 @@ const NewJournalDialog = ({
   const [reference, setReference] = useState("");
   const [currency, setCurrency] = useState("EGP");
   const [lines, setLines] = useState<LineDraft[]>([
-    { account_id: "", partner_id: null, description: "", debit: "", credit: "" },
-    { account_id: "", partner_id: null, description: "", debit: "", credit: "" },
+    { account_id: "", customer_id: null, supplier_id: null, description: "", debit: "", credit: "" },
+    { account_id: "", customer_id: null, supplier_id: null, description: "", debit: "", credit: "" },
   ]);
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [partners, setPartners] = useState<Partner[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [saving, setSaving] = useState(false);
 
@@ -118,14 +120,15 @@ const NewJournalDialog = ({
     if (!open) return;
     Promise.all([
       supabase.from("accounts").select("*").eq("is_active", true).order("code"),
-      supabase.from("partners").select("*").eq("is_active", true).order("name_ar"),
+      supabase.from("customers").select("*").eq("is_active", true).order("name"),
+      supabase.from("suppliers").select("*").eq("is_active", true).order("name"),
       supabase.from("currencies").select("*").order("code"),
-    ]).then(([a, p, c]) => {
+    ]).then(([a, cu, su, c]) => {
       const allAccounts = (a.data ?? []) as Account[];
-      // Only leaf accounts (no children) can be used in journal lines
       const parentIds = new Set(allAccounts.map((x) => x.parent_id).filter(Boolean));
       setAccounts(allAccounts.filter((acc) => !parentIds.has(acc.id)));
-      setPartners((p.data ?? []) as Partner[]);
+      setCustomers((cu.data ?? []) as Customer[]);
+      setSuppliers((su.data ?? []) as Supplier[]);
       setCurrencies((c.data ?? []) as Currency[]);
     });
   }, [open]);
@@ -137,8 +140,8 @@ const NewJournalDialog = ({
       setReference("");
       setCurrency("EGP");
       setLines([
-        { account_id: "", partner_id: null, description: "", debit: "", credit: "" },
-        { account_id: "", partner_id: null, description: "", debit: "", credit: "" },
+        { account_id: "", customer_id: null, supplier_id: null, description: "", debit: "", credit: "" },
+        { account_id: "", customer_id: null, supplier_id: null, description: "", debit: "", credit: "" },
       ]);
     }
   }, [open]);
@@ -153,7 +156,7 @@ const NewJournalDialog = ({
     setLines((prev) => prev.map((l, i) => (i === idx ? { ...l, ...patch } : l)));
   };
 
-  const addLine = () => setLines((p) => [...p, { account_id: "", partner_id: null, description: "", debit: "", credit: "" }]);
+  const addLine = () => setLines((p) => [...p, { account_id: "", customer_id: null, supplier_id: null, description: "", debit: "", credit: "" }]);
   const removeLine = (idx: number) => setLines((p) => (p.length > 2 ? p.filter((_, i) => i !== idx) : p));
 
   const handleSave = async () => {
@@ -186,7 +189,8 @@ const NewJournalDialog = ({
     const linesPayload = validLines.map((l, i) => ({
       entry_id: (entry as JournalEntry).id,
       account_id: l.account_id,
-      partner_id: l.partner_id,
+      customer_id: l.customer_id,
+      supplier_id: l.supplier_id,
       description: l.description.trim() || null,
       debit: parseFloat(l.debit) || 0,
       credit: parseFloat(l.credit) || 0,
@@ -263,11 +267,25 @@ const NewJournalDialog = ({
                       </Select>
                     </td>
                     <td className="p-1.5">
-                      <Select value={line.partner_id ?? "__none"} onValueChange={(v) => updateLine(idx, { partner_id: v === "__none" ? null : v })}>
+                      <Select
+                        value={line.customer_id ? `c:${line.customer_id}` : line.supplier_id ? `s:${line.supplier_id}` : "__none"}
+                        onValueChange={(v) => {
+                          if (v === "__none") updateLine(idx, { customer_id: null, supplier_id: null });
+                          else if (v.startsWith("c:")) updateLine(idx, { customer_id: v.slice(2), supplier_id: null });
+                          else updateLine(idx, { supplier_id: v.slice(2), customer_id: null });
+                        }}
+                      >
                         <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="__none">— بدون —</SelectItem>
-                          {partners.map((p) => <SelectItem key={p.id} value={p.id}>{p.name_ar}</SelectItem>)}
+                          {customers.length > 0 && (
+                            <div className="px-2 py-1 text-xs text-muted-foreground">العملاء</div>
+                          )}
+                          {customers.map((c) => <SelectItem key={`c-${c.id}`} value={`c:${c.id}`}>{c.name}</SelectItem>)}
+                          {suppliers.length > 0 && (
+                            <div className="px-2 py-1 text-xs text-muted-foreground">الموردين</div>
+                          )}
+                          {suppliers.map((s) => <SelectItem key={`s-${s.id}`} value={`s:${s.id}`}>{s.name}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </td>
