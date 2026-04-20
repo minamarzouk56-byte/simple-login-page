@@ -629,6 +629,10 @@ export type Database = {
         | "suppliers.create"
         | "suppliers.edit"
         | "suppliers.delete"
+        | "inventory.view"
+        | "inventory.manage"
+        | "inventory.request"
+        | "inventory.approve"
       custody_status: "active" | "settled" | "cancelled"
       inventory_request_status:
         | "pending"
@@ -789,6 +793,10 @@ export const Constants = {
         "suppliers.create",
         "suppliers.edit",
         "suppliers.delete",
+        "inventory.view",
+        "inventory.manage",
+        "inventory.request",
+        "inventory.approve",
       ],
       custody_status: ["active", "settled", "cancelled"],
       inventory_request_status: [
