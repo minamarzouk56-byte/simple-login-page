@@ -117,11 +117,14 @@ const NewJournalDialog = ({
   useEffect(() => {
     if (!open) return;
     Promise.all([
-      supabase.from("accounts").select("*").eq("is_active", true).eq("is_leaf", true).order("code"),
+      supabase.from("accounts").select("*").eq("is_active", true).order("code"),
       supabase.from("partners").select("*").eq("is_active", true).order("name_ar"),
       supabase.from("currencies").select("*").order("code"),
     ]).then(([a, p, c]) => {
-      setAccounts((a.data ?? []) as Account[]);
+      const allAccounts = (a.data ?? []) as Account[];
+      // Only leaf accounts (no children) can be used in journal lines
+      const parentIds = new Set(allAccounts.map((x) => x.parent_id).filter(Boolean));
+      setAccounts(allAccounts.filter((acc) => !parentIds.has(acc.id)));
       setPartners((p.data ?? []) as Partner[]);
       setCurrencies((c.data ?? []) as Currency[]);
     });
