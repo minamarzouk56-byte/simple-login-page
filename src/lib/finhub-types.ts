@@ -5,6 +5,7 @@ export type PartnerType = "customer" | "supplier" | "both";
 export type JournalStatus = "posted";
 
 export type AppPermission =
+  | "dashboard.view"
   | "accounts.view"
   | "accounts.create"
   | "accounts.edit"
@@ -113,6 +114,7 @@ export interface UserPermission {
 }
 
 export const PERMISSION_LABELS_AR: Record<AppPermission, string> = {
+  "dashboard.view": "عرض لوحة التحكم",
   "accounts.view": "عرض الحسابات",
   "accounts.create": "إنشاء حسابات",
   "accounts.edit": "تعديل الحسابات",

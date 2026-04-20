@@ -117,19 +117,19 @@ Deno.serve(async (req) => {
       .update({ full_name: fullName, is_admin: false })
       .eq("user_id", newUserId);
 
-    // 5. Insert permissions (best-effort)
-    if (permissions.length > 0) {
-      const rows = permissions.map((p) => ({
-        user_id: newUserId,
-        permission: p,
-        granted_by: callerId,
-      }));
-      const { error: permErr } = await adminClient.from("user_permissions").insert(rows);
-      if (permErr) {
-        // Roll back user on permission failure
-        await adminClient.auth.admin.deleteUser(newUserId);
-        return json({ error: `فشل منح الصلاحيات: ${permErr.message}` }, 500);
-      }
+    // 5. Insert permissions (best-effort).
+    //    Always include dashboard.view so the new user can access the home page.
+    const finalPerms = Array.from(new Set<string>(["dashboard.view", ...permissions]));
+    const rows = finalPerms.map((p) => ({
+      user_id: newUserId,
+      permission: p,
+      granted_by: callerId,
+    }));
+    const { error: permErr } = await adminClient.from("user_permissions").insert(rows);
+    if (permErr) {
+      // Roll back user on permission failure
+      await adminClient.auth.admin.deleteUser(newUserId);
+      return json({ error: `فشل منح الصلاحيات: ${permErr.message}` }, 500);
     }
 
     return json({ success: true, user_id: newUserId, email });

@@ -22,7 +22,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: "/", label: "لوحة التحكم", icon: LayoutDashboard },
+  { to: "/", label: "لوحة التحكم", icon: LayoutDashboard, permission: "dashboard.view" },
   { to: "/accounts", label: "شجرة الحسابات", icon: Network, permission: "accounts.view" },
   { to: "/journal", label: "القيود اليومية", icon: BookOpen, permission: "journal.view" },
   { to: "/partners", label: "العملاء والموردين", icon: Users, permission: "partners.view" },

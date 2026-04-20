@@ -511,6 +511,7 @@ export type Database = {
         | "reports.view"
         | "users.manage"
         | "settings.manage"
+        | "dashboard.view"
       custody_status: "active" | "settled" | "cancelled"
       inventory_request_status:
         | "pending"
@@ -663,6 +664,7 @@ export const Constants = {
         "reports.view",
         "users.manage",
         "settings.manage",
+        "dashboard.view",
       ],
       custody_status: ["active", "settled", "cancelled"],
       inventory_request_status: [

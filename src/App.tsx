@@ -36,7 +36,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             >
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/" element={<ProtectedRoute requirePermission="dashboard.view"><Dashboard /></ProtectedRoute>} />
               <Route path="/accounts" element={<ProtectedRoute requirePermission="accounts.view"><Accounts /></ProtectedRoute>} />
               <Route path="/journal" element={<ProtectedRoute requirePermission="journal.view"><Journal /></ProtectedRoute>} />
               <Route path="/partners" element={<ProtectedRoute requirePermission="partners.view"><Partners /></ProtectedRoute>} />
