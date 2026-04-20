@@ -166,6 +166,26 @@ const Accounts = () => {
 
       <Card className="shadow-soft">
         <CardContent className="p-2">
+          <div className="relative p-2 pb-3">
+            <Search className="absolute end-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="ابحث باسم الحساب أو الكود…"
+              className="pe-9 ps-9"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute start-5 top-1/2 -translate-y-1/2 h-5 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted"
+                aria-label="مسح البحث"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
           {loading ? (
             <div className="flex items-center justify-center py-12 text-muted-foreground">
               <Loader2 className="h-6 w-6 animate-spin" />
@@ -174,13 +194,17 @@ const Accounts = () => {
             <div className="py-12 text-center text-muted-foreground">
               لا توجد حسابات. شغّل ملف SQL أولاً ليتم زرع الحسابات الجذرية الـ 5.
             </div>
+          ) : filteredTree.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground">
+              لا توجد نتائج مطابقة لـ <strong className="text-foreground">"{search}"</strong>
+            </div>
           ) : (
             <ul className="divide-y divide-border">
-              {tree.map((node) => (
+              {filteredTree.map((node) => (
                 <TreeRow
                   key={node.id}
                   node={node}
-                  expanded={expanded}
+                  expanded={effectiveExpanded}
                   onToggle={toggle}
                   onAddChild={openNewDialog}
                   onEdit={setEditTarget}
@@ -190,6 +214,7 @@ const Accounts = () => {
                   canEdit={canEdit}
                   canDelete={canDelete}
                   depth={0}
+                  highlight={search.trim().toLowerCase()}
                 />
               ))}
             </ul>
