@@ -300,7 +300,21 @@ interface TreeRowProps {
   canEdit: boolean;
   canDelete: boolean;
   depth: number;
+  highlight?: string;
 }
+
+const HighlightText = ({ text, query }: { text: string; query?: string }) => {
+  if (!query) return <>{text}</>;
+  const idx = text.toLowerCase().indexOf(query);
+  if (idx === -1) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="bg-warning/30 text-foreground rounded px-0.5">{text.slice(idx, idx + query.length)}</mark>
+      {text.slice(idx + query.length)}
+    </>
+  );
+};
 
 const TreeRow = ({
   node,
@@ -314,6 +328,7 @@ const TreeRow = ({
   canEdit,
   canDelete,
   depth,
+  highlight,
 }: TreeRowProps) => {
   const isOpen = expanded.has(node.id);
   const hasChildren = node.children.length > 0;
@@ -356,7 +371,7 @@ const TreeRow = ({
             className="truncate font-medium"
             style={{ color: depth === 0 ? `hsl(var(${style.var}))` : undefined }}
           >
-            {node.name}
+            <HighlightText text={node.name} query={highlight} />
           </span>
           <Badge
             variant="outline"
@@ -367,7 +382,7 @@ const TreeRow = ({
               backgroundColor: `hsl(var(${style.var}) / 0.08)`,
             }}
           >
-            {node.code}
+            <HighlightText text={node.code} query={highlight} />
           </Badge>
           <Badge
             className="text-xs hidden sm:inline-flex shrink-0 border"
@@ -447,6 +462,7 @@ const TreeRow = ({
               canEdit={canEdit}
               canDelete={canDelete}
               depth={depth + 1}
+              highlight={highlight}
             />
           ))}
         </ul>
