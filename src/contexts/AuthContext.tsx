@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const loadUserData = useCallback(async (uid: string) => {
     const [{ data: prof }, { data: perms }] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
+      supabase.from("profiles").select("*").eq("user_id", uid).maybeSingle(),
       supabase.from("user_permissions").select("permission").eq("user_id", uid),
     ]);
     setProfile((prof as Profile) ?? null);
