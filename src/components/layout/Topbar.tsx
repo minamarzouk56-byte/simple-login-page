@@ -2,11 +2,7 @@ import { Bell, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ThemeToggle } from "./ThemeToggle";
 
 interface TopbarProps {
@@ -31,15 +27,8 @@ export const Topbar = ({ title }: TopbarProps) => {
           </AvatarFallback>
         </Avatar>
         <div className="min-w-0 hidden sm:block">
-          <p className="truncate text-sm font-semibold text-foreground leading-tight">
-            {fullName}
-          </p>
-          <p className="truncate text-xs text-muted-foreground mt-0.5">
-            {jobTitle}
-          </p>
-        </div>
-        <div className="hidden lg:block ms-4 ps-4 border-s border-border">
-          <h2 className="font-display text-base font-semibold text-foreground">{title}</h2>
+          <p className="truncate text-sm font-semibold text-foreground leading-tight">{fullName}</p>
+          <p className="truncate text-xs text-muted-foreground mt-0.5">{jobTitle}</p>
         </div>
       </div>
 
@@ -47,13 +36,7 @@ export const Topbar = ({ title }: TopbarProps) => {
       <div className="flex items-center gap-1.5">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative rounded-full"
-              aria-label="الإشعارات"
-              disabled
-            >
+            <Button variant="ghost" size="icon" className="relative rounded-full" aria-label="الإشعارات" disabled>
               <Bell className="h-[1.15rem] w-[1.15rem]" />
               <span className="absolute top-2 end-2 h-2 w-2 rounded-full bg-accent" />
             </Button>
