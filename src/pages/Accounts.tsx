@@ -241,8 +241,8 @@ const NewAccountDialog = ({
     if (open) {
       setName("");
       setNotes("");
-      setType(parent?.account_type ?? "asset");
-      setCurrency(parent?.currency_code ?? "EGP");
+      setType(parent?.type ?? "asset");
+      setCurrency(parent?.currency ?? "EGP");
     }
   }, [open, parent]);
 
