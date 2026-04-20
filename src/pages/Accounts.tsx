@@ -48,6 +48,7 @@ const Accounts = () => {
   const [parentForNew, setParentForNew] = useState<Account | null>(null);
   const [editTarget, setEditTarget] = useState<Account | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Account | null>(null);
+  const [statementTarget, setStatementTarget] = useState<Account | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const canCreate = hasPermission("accounts.create");
