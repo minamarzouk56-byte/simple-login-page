@@ -615,11 +615,13 @@ const NewAccountDialog = ({
 
 const EditAccountDialog = ({
   account,
+  allAccounts,
   onOpenChange,
   currencies,
   onSaved,
 }: {
   account: Account | null;
+  allAccounts: Account[];
   onOpenChange: (v: boolean) => void;
   currencies: Currency[];
   onSaved: () => void;
@@ -629,6 +631,9 @@ const EditAccountDialog = ({
   const [currency, setCurrency] = useState("EGP");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const parentAcc = account?.parent_id ? allAccounts.find((a) => a.id === account.parent_id) ?? null : null;
+  const lockedCurrency = parentAcc && parentAcc.currency !== "GEN" ? parentAcc.currency : null;
 
   useEffect(() => {
     if (account) {
@@ -679,15 +684,26 @@ const EditAccountDialog = ({
             <Input id="edit-acc-name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>العملة</Label>
-            <Select value={currency} onValueChange={setCurrency}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {currencies.map((c) => (
-                  <SelectItem key={c.code} value={c.code}>{c.name_ar} ({c.code})</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>
+              العملة {lockedCurrency && <span className="text-xs text-muted-foreground">(موروثة من الحساب الأب)</span>}
+            </Label>
+            <SearchableSelect
+              value={currency}
+              onChange={setCurrency}
+              disabled={!!lockedCurrency}
+              placeholder="اختر العملة..."
+              searchPlaceholder="ابحث عن العملة..."
+              options={currencies.map((c) => ({
+                value: c.code,
+                label: `${c.name_ar} (${c.code})`,
+                keywords: `${c.code} ${c.name_ar}`,
+              }))}
+            />
+            {lockedCurrency && (
+              <p className="text-xs text-muted-foreground">
+                لا يمكن تغيير العملة لأن الحساب الأب بعملة {lockedCurrency}.
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit-acc-notes">ملاحظات</Label>
