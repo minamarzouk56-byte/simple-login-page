@@ -277,6 +277,136 @@ export type Database = {
           },
         ]
       }
+      inventory_permit_lines: {
+        Row: {
+          id: string
+          item_id: string
+          line_order: number
+          line_total: number
+          notes: string | null
+          permit_id: string
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          id?: string
+          item_id: string
+          line_order?: number
+          line_total?: number
+          notes?: string | null
+          permit_id: string
+          quantity?: number
+          unit_price?: number
+        }
+        Update: {
+          id?: string
+          item_id?: string
+          line_order?: number
+          line_total?: number
+          notes?: string | null
+          permit_id?: string
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_permit_lines_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_permit_lines_permit_id_fkey"
+            columns: ["permit_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_permits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_permits: {
+        Row: {
+          counterparty_account_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          journal_entry_id: string | null
+          notes: string | null
+          permit_date: string
+          permit_number: string
+          permit_type: Database["public"]["Enums"]["permit_type"]
+          requested_by: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["permit_status"]
+          total_amount: number
+          updated_at: string
+          warehouse_id: string
+        }
+        Insert: {
+          counterparty_account_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          notes?: string | null
+          permit_date?: string
+          permit_number: string
+          permit_type: Database["public"]["Enums"]["permit_type"]
+          requested_by: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["permit_status"]
+          total_amount?: number
+          updated_at?: string
+          warehouse_id: string
+        }
+        Update: {
+          counterparty_account_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          notes?: string | null
+          permit_date?: string
+          permit_number?: string
+          permit_type?: Database["public"]["Enums"]["permit_type"]
+          requested_by?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["permit_status"]
+          total_amount?: number
+          updated_at?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_permits_counterparty_account_id_fkey"
+            columns: ["counterparty_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_permits_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_permits_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_requests: {
         Row: {
           created_at: string
@@ -324,6 +454,159 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      item_categories: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          parent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "item_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_stock: {
+        Row: {
+          id: string
+          item_id: string
+          quantity: number
+          updated_at: string
+          warehouse_id: string
+        }
+        Insert: {
+          id?: string
+          item_id: string
+          quantity?: number
+          updated_at?: string
+          warehouse_id: string
+        }
+        Update: {
+          id?: string
+          item_id?: string
+          quantity?: number
+          updated_at?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_stock_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_stock_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      items: {
+        Row: {
+          account_id: string | null
+          category_id: string | null
+          code: string
+          cost_price: number
+          created_at: string
+          created_by: string | null
+          default_warehouse_id: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          min_stock: number
+          name: string
+          sale_price: number
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          category_id?: string | null
+          code: string
+          cost_price?: number
+          created_at?: string
+          created_by?: string | null
+          default_warehouse_id?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          min_stock?: number
+          name: string
+          sale_price?: number
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          category_id?: string | null
+          code?: string
+          cost_price?: number
+          created_at?: string
+          created_by?: string | null
+          default_warehouse_id?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          min_stock?: number
+          name?: string
+          sale_price?: number
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "items_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "item_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "items_default_warehouse_id_fkey"
+            columns: ["default_warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       journal_entries: {
         Row: {
@@ -492,6 +775,70 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_movements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          item_id: string
+          movement_date: string
+          movement_type: Database["public"]["Enums"]["movement_type"]
+          permit_id: string | null
+          quantity: number
+          unit_price: number
+          warehouse_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          item_id: string
+          movement_date?: string
+          movement_type: Database["public"]["Enums"]["movement_type"]
+          permit_id?: string | null
+          quantity: number
+          unit_price?: number
+          warehouse_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          item_id?: string
+          movement_date?: string
+          movement_type?: Database["public"]["Enums"]["movement_type"]
+          permit_id?: string | null
+          quantity?: number
+          unit_price?: number
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_permit_id_fkey"
+            columns: ["permit_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_permits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           account_id: string | null
@@ -588,11 +935,51 @@ export type Database = {
         }
         Relationships: []
       }
+      warehouses: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          location: string | null
+          name: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          name: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          name?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      approve_inventory_permit: {
+        Args: { _permit_id: string; _review_notes?: string }
+        Returns: string
+      }
       has_permission: {
         Args: {
           _permission: Database["public"]["Enums"]["app_permission"]
@@ -601,6 +988,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      reject_inventory_permit: {
+        Args: { _permit_id: string; _review_notes?: string }
+        Returns: undefined
+      }
     }
     Enums: {
       account_type: "asset" | "liability" | "equity" | "revenue" | "expense"
@@ -629,6 +1020,10 @@ export type Database = {
         | "suppliers.create"
         | "suppliers.edit"
         | "suppliers.delete"
+        | "inventory.view"
+        | "inventory.manage"
+        | "inventory.request"
+        | "inventory.approve"
       custody_status: "active" | "settled" | "cancelled"
       inventory_request_status:
         | "pending"
@@ -636,6 +1031,9 @@ export type Database = {
         | "rejected"
         | "fulfilled"
       journal_status: "posted"
+      movement_type: "in" | "out" | "adjust" | "transfer"
+      permit_status: "pending" | "approved" | "rejected" | "cancelled"
+      permit_type: "issue" | "receive"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -789,6 +1187,10 @@ export const Constants = {
         "suppliers.create",
         "suppliers.edit",
         "suppliers.delete",
+        "inventory.view",
+        "inventory.manage",
+        "inventory.request",
+        "inventory.approve",
       ],
       custody_status: ["active", "settled", "cancelled"],
       inventory_request_status: [
@@ -798,6 +1200,9 @@ export const Constants = {
         "fulfilled",
       ],
       journal_status: ["posted"],
+      movement_type: ["in", "out", "adjust", "transfer"],
+      permit_status: ["pending", "approved", "rejected", "cancelled"],
+      permit_type: ["issue", "receive"],
     },
   },
 } as const
