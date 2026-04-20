@@ -166,7 +166,7 @@ const Reports = () => {
 const ReportSection = ({
   title, type, balances,
 }: { title: string; type: AccountType; balances: AccountBalance[] }) => {
-  const items = balances.filter((b) => b.account.account_type === type && b.balance !== 0);
+  const items = balances.filter((b) => b.account.type === type && b.balance !== 0);
   const total = items.reduce((s, i) => s + i.balance, 0);
   return (
     <div>
