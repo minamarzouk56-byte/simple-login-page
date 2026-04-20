@@ -98,7 +98,7 @@ const Reports = () => {
                       {trialBalance.map((b) => (
                         <tr key={b.account.id}>
                           <td className="px-4 py-2.5 font-mono text-xs tabular-nums text-muted-foreground">{b.account.code}</td>
-                          <td className="px-4 py-2.5">{b.account.name_ar}</td>
+                          <td className="px-4 py-2.5">{b.account.name}</td>
                           <td className="px-4 py-2.5 text-end tabular-nums">{b.debit.toLocaleString("ar-EG", { minimumFractionDigits: 2 })}</td>
                           <td className="px-4 py-2.5 text-end tabular-nums">{b.credit.toLocaleString("ar-EG", { minimumFractionDigits: 2 })}</td>
                           <td className="px-4 py-2.5 text-end tabular-nums font-semibold">{b.balance.toLocaleString("ar-EG", { minimumFractionDigits: 2 })}</td>
