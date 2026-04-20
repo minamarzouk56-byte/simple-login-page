@@ -150,47 +150,38 @@ export const PartnerFormDialog = ({ open, onOpenChange, partner, kind, onSaved }
               <Label>
                 العملة <span className="text-destructive">*</span>
               </Label>
-              <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {currencies.map((c) => (
-                    <SelectItem key={c.code} value={c.code}>
-                      {c.name_ar} ({c.code})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={currency}
+                onChange={setCurrency}
+                placeholder="اختر العملة..."
+                searchPlaceholder="ابحث عن العملة..."
+                options={currencies.map((c) => ({
+                  value: c.code,
+                  label: `${c.name_ar} (${c.code})`,
+                  keywords: `${c.code} ${c.name_ar}`,
+                }))}
+              />
             </div>
 
             <div className="space-y-2 sm:col-span-2">
               <Label>
                 الحساب المرتبط في شجرة الحسابات <span className="text-destructive">*</span>
               </Label>
-              <Select value={accountId} onValueChange={setAccountId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="اختر حساباً فرعياً بنفس العملة..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {eligibleAccounts.length === 0 ? (
-                    <div className="px-3 py-6 text-center text-sm text-muted-foreground">
-                      لا توجد حسابات فرعية بعملة {currency}. أنشئ حساباً أولاً.
-                    </div>
-                  ) : (
-                    eligibleAccounts.map((a) => (
-                      <SelectItem key={a.id} value={a.id}>
-                        <span className="font-mono text-xs tabular-nums text-muted-foreground me-2">
-                          {a.code}
-                        </span>
-                        {a.name}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={accountId}
+                onChange={setAccountId}
+                placeholder={`اختر حساباً فرعياً بعملة ${currency}...`}
+                searchPlaceholder="ابحث بالاسم أو الكود..."
+                emptyMessage={`لا توجد حسابات فرعية متاحة بعملة ${currency}.`}
+                options={eligibleAccounts.map((a) => ({
+                  value: a.id,
+                  label: a.name,
+                  prefix: a.code,
+                  keywords: `${a.code} ${a.name}`,
+                }))}
+              />
               <p className="text-xs text-muted-foreground">
-                لازم يكون الحساب فرعي (آخر مستوى) وعملته مطابقة لعملة {kind === "customer" ? "العميل" : "المورد"}.
+                بتظهر فقط الحسابات الفرعية (آخر مستوى) بنفس عملة {kind === "customer" ? "العميل" : "المورد"} أو الحسابات بعملة "عام".
               </p>
             </div>
 
