@@ -40,6 +40,7 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
   const { toast } = useToast();
   const [items, setItems] = useState<Customer[]>([]);
   const [movements, setMovements] = useState<Record<string, number>>({});
+  const [currencies, setCurrencies] = useState<Record<string, { name_ar: string; symbol: string }>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
@@ -58,7 +59,10 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from(table).select("*").order("code");
+    const [{ data, error }, { data: curs }] = await Promise.all([
+      supabase.from(table).select("*").order("code"),
+      supabase.from("currencies").select("code, name_ar, symbol"),
+    ]);
     if (error) {
       toast({ title: "فشل التحميل", description: error.message, variant: "destructive" });
       setLoading(false);
@@ -66,6 +70,9 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
     }
     const list = (data ?? []) as unknown as Customer[];
     setItems(list);
+    const cmap: Record<string, { name_ar: string; symbol: string }> = {};
+    (curs ?? []).forEach((c: any) => { cmap[c.code] = { name_ar: c.name_ar, symbol: c.symbol }; });
+    setCurrencies(cmap);
 
     const ids = list.map((p) => p.id);
     if (ids.length) {
@@ -173,8 +180,7 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
                   <tr>
                     <th className="px-4 py-3 text-right font-medium">الكود</th>
                     <th className="px-4 py-3 text-right font-medium">الاسم</th>
-                    <th className="px-4 py-3 text-right font-medium">الهاتف</th>
-                    <th className="px-4 py-3 text-right font-medium">البريد</th>
+                    <th className="px-4 py-3 text-center font-medium">عملة الحساب</th>
                     <th className="px-4 py-3 text-end font-medium">حد الائتمان</th>
                     <th className="px-4 py-3 text-end font-medium">الرصيد</th>
                     <th className="px-4 py-3 text-end font-medium w-32">الإجراءات</th>
@@ -183,12 +189,17 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
                 <tbody className="divide-y divide-border">
                   {filtered.map((p) => {
                     const balance = (Number(p.opening_balance) || 0) + (movements[p.id] ?? 0);
+                    const cur = currencies[p.currency];
                     return (
                       <tr key={p.id} className="hover:bg-muted/30 transition-base">
                         <td className="px-4 py-3 font-mono text-xs tabular-nums text-muted-foreground">{p.code}</td>
                         <td className="px-4 py-3 font-medium">{p.name}</td>
-                        <td className="px-4 py-3 text-muted-foreground" dir="ltr">{p.phone ?? "—"}</td>
-                        <td className="px-4 py-3 text-muted-foreground" dir="ltr">{p.email ?? "—"}</td>
+                        <td className="px-4 py-3 text-center">
+                          <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2 py-0.5 text-xs font-medium">
+                            <span className="font-mono text-muted-foreground">{p.currency}</span>
+                            <span>{cur?.name_ar ?? "—"}</span>
+                          </span>
+                        </td>
                         <td className="px-4 py-3 text-end tabular-nums text-muted-foreground">
                           {Number(p.credit_limit) > 0 ? fmt(Number(p.credit_limit)) : "—"}
                         </td>
