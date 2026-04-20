@@ -512,6 +512,14 @@ export type Database = {
         | "users.manage"
         | "settings.manage"
         | "dashboard.view"
+        | "customers.view"
+        | "customers.create"
+        | "customers.edit"
+        | "customers.delete"
+        | "suppliers.view"
+        | "suppliers.create"
+        | "suppliers.edit"
+        | "suppliers.delete"
       custody_status: "active" | "settled" | "cancelled"
       inventory_request_status:
         | "pending"
@@ -665,6 +673,14 @@ export const Constants = {
         "users.manage",
         "settings.manage",
         "dashboard.view",
+        "customers.view",
+        "customers.create",
+        "customers.edit",
+        "customers.delete",
+        "suppliers.view",
+        "suppliers.create",
+        "suppliers.edit",
+        "suppliers.delete",
       ],
       custody_status: ["active", "settled", "cancelled"],
       inventory_request_status: [
