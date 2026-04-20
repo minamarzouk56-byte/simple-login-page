@@ -274,7 +274,7 @@ const NewAccountDialog = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="font-display">
-            {parent ? `حساب فرعي تحت: ${parent.name_ar}` : "حساب رئيسي جديد"}
+            {parent ? `حساب فرعي تحت: ${parent.name}` : "حساب رئيسي جديد"}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
