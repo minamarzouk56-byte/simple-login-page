@@ -205,6 +205,60 @@ export type Database = {
           },
         ]
       }
+      customers: {
+        Row: {
+          account_id: string | null
+          address: string | null
+          code: string
+          created_at: string
+          created_by: string | null
+          credit_limit: number
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          opening_balance: number
+          phone: string | null
+          tax_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          address?: string | null
+          code: string
+          created_at?: string
+          created_by?: string | null
+          credit_limit?: number
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          opening_balance?: number
+          phone?: string | null
+          tax_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          address?: string | null
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          credit_limit?: number
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          opening_balance?: number
+          phone?: string | null
+          tax_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inventory_requests: {
         Row: {
           created_at: string
@@ -308,37 +362,40 @@ export type Database = {
           account_id: string
           credit: number
           currency_code: string
+          customer_id: string | null
           debit: number
           description: string | null
           entry_id: string
           exchange_rate: number
           id: string
           line_order: number
-          partner_id: string | null
+          supplier_id: string | null
         }
         Insert: {
           account_id: string
           credit?: number
           currency_code?: string
+          customer_id?: string | null
           debit?: number
           description?: string | null
           entry_id: string
           exchange_rate?: number
           id?: string
           line_order?: number
-          partner_id?: string | null
+          supplier_id?: string | null
         }
         Update: {
           account_id?: string
           credit?: number
           currency_code?: string
+          customer_id?: string | null
           debit?: number
           description?: string | null
           entry_id?: string
           exchange_rate?: number
           id?: string
           line_order?: number
-          partner_id?: string | null
+          supplier_id?: string | null
         }
         Relationships: [
           {
@@ -356,6 +413,13 @@ export type Database = {
             referencedColumns: ["code"]
           },
           {
+            foreignKeyName: "journal_entry_lines_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "journal_entry_lines_entry_id_fkey"
             columns: ["entry_id"]
             isOneToOne: false
@@ -363,58 +427,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "journal_entry_lines_partner_id_fkey"
-            columns: ["partner_id"]
+            foreignKeyName: "journal_entry_lines_supplier_id_fkey"
+            columns: ["supplier_id"]
             isOneToOne: false
-            referencedRelation: "partners"
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
-      }
-      partners: {
-        Row: {
-          address: string | null
-          code: string
-          created_at: string
-          created_by: string | null
-          email: string | null
-          id: string
-          is_active: boolean
-          name_ar: string
-          notes: string | null
-          partner_type: Database["public"]["Enums"]["partner_type"]
-          phone: string | null
-          tax_number: string | null
-        }
-        Insert: {
-          address?: string | null
-          code: string
-          created_at?: string
-          created_by?: string | null
-          email?: string | null
-          id?: string
-          is_active?: boolean
-          name_ar: string
-          notes?: string | null
-          partner_type?: Database["public"]["Enums"]["partner_type"]
-          phone?: string | null
-          tax_number?: string | null
-        }
-        Update: {
-          address?: string | null
-          code?: string
-          created_at?: string
-          created_by?: string | null
-          email?: string | null
-          id?: string
-          is_active?: boolean
-          name_ar?: string
-          notes?: string | null
-          partner_type?: Database["public"]["Enums"]["partner_type"]
-          phone?: string | null
-          tax_number?: string | null
-        }
-        Relationships: []
       }
       profiles: {
         Row: {
@@ -452,6 +471,60 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          account_id: string | null
+          address: string | null
+          code: string
+          created_at: string
+          created_by: string | null
+          credit_limit: number
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          opening_balance: number
+          phone: string | null
+          tax_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          address?: string | null
+          code: string
+          created_at?: string
+          created_by?: string | null
+          credit_limit?: number
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          opening_balance?: number
+          phone?: string | null
+          tax_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          address?: string | null
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          credit_limit?: number
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          opening_balance?: number
+          phone?: string | null
+          tax_number?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -512,6 +585,14 @@ export type Database = {
         | "users.manage"
         | "settings.manage"
         | "dashboard.view"
+        | "customers.view"
+        | "customers.create"
+        | "customers.edit"
+        | "customers.delete"
+        | "suppliers.view"
+        | "suppliers.create"
+        | "suppliers.edit"
+        | "suppliers.delete"
       custody_status: "active" | "settled" | "cancelled"
       inventory_request_status:
         | "pending"
@@ -519,7 +600,6 @@ export type Database = {
         | "rejected"
         | "fulfilled"
       journal_status: "posted"
-      partner_type: "customer" | "supplier" | "both"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -665,6 +745,14 @@ export const Constants = {
         "users.manage",
         "settings.manage",
         "dashboard.view",
+        "customers.view",
+        "customers.create",
+        "customers.edit",
+        "customers.delete",
+        "suppliers.view",
+        "suppliers.create",
+        "suppliers.edit",
+        "suppliers.delete",
       ],
       custody_status: ["active", "settled", "cancelled"],
       inventory_request_status: [
@@ -674,7 +762,6 @@ export const Constants = {
         "fulfilled",
       ],
       journal_status: ["posted"],
-      partner_type: ["customer", "supplier", "both"],
     },
   },
 } as const

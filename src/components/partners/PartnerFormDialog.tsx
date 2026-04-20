@@ -7,17 +7,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
-import type { Partner, PartnerType } from "@/lib/finhub-types";
+import type { Customer } from "@/lib/finhub-types";
 
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  partner: Partner | null;
-  defaultType: PartnerType;
+  partner: Customer | null;
+  kind: "customer" | "supplier";
   onSaved: () => void;
 }
 
-export const PartnerFormDialog = ({ open, onOpenChange, partner, defaultType, onSaved }: Props) => {
+export const PartnerFormDialog = ({ open, onOpenChange, partner, kind, onSaved }: Props) => {
   const { toast } = useToast();
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
@@ -25,17 +25,23 @@ export const PartnerFormDialog = ({ open, onOpenChange, partner, defaultType, on
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [taxNumber, setTaxNumber] = useState("");
+  const [creditLimit, setCreditLimit] = useState("0");
+  const [openingBalance, setOpeningBalance] = useState("0");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const table = kind === "customer" ? "customers" : "suppliers";
 
   useEffect(() => {
     if (open) {
       setCode(partner?.code ?? "");
-      setName(partner?.name_ar ?? "");
+      setName(partner?.name ?? "");
       setPhone(partner?.phone ?? "");
       setEmail(partner?.email ?? "");
       setAddress(partner?.address ?? "");
       setTaxNumber(partner?.tax_number ?? "");
+      setCreditLimit(String(partner?.credit_limit ?? 0));
+      setOpeningBalance(String(partner?.opening_balance ?? 0));
       setNotes(partner?.notes ?? "");
     }
   }, [open, partner]);
@@ -46,19 +52,21 @@ export const PartnerFormDialog = ({ open, onOpenChange, partner, defaultType, on
       return;
     }
     setSaving(true);
-    const base = {
-      name_ar: name.trim(),
+    const payload = {
+      name: name.trim(),
       phone: phone.trim() || null,
       email: email.trim() || null,
       address: address.trim() || null,
       tax_number: taxNumber.trim() || null,
+      credit_limit: parseFloat(creditLimit) || 0,
+      opening_balance: parseFloat(openingBalance) || 0,
       notes: notes.trim() || null,
       ...(code.trim() ? { code: code.trim() } : {}),
     };
 
     const { error } = partner
-      ? await supabase.from("partners").update(base).eq("id", partner.id)
-      : await supabase.from("partners").insert({ ...base, partner_type: defaultType } as never);
+      ? await supabase.from(table).update(payload).eq("id", partner.id)
+      : await supabase.from(table).insert(payload as never);
     setSaving(false);
     if (error) {
       toast({ title: "فشل الحفظ", description: error.message, variant: "destructive" });
@@ -96,9 +104,17 @@ export const PartnerFormDialog = ({ open, onOpenChange, partner, defaultType, on
             <Label>العنوان</Label>
             <Input value={address} onChange={(e) => setAddress(e.target.value)} />
           </div>
-          <div className="space-y-2 sm:col-span-2">
+          <div className="space-y-2">
             <Label>الرقم الضريبي</Label>
             <Input dir="ltr" className="text-right" value={taxNumber} onChange={(e) => setTaxNumber(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label>حد الائتمان</Label>
+            <Input dir="ltr" className="text-right tabular-nums" type="number" step="0.01" value={creditLimit} onChange={(e) => setCreditLimit(e.target.value)} />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label>الرصيد الافتتاحي</Label>
+            <Input dir="ltr" className="text-right tabular-nums" type="number" step="0.01" value={openingBalance} onChange={(e) => setOpeningBalance(e.target.value)} />
           </div>
           <div className="space-y-2 sm:col-span-2">
             <Label>ملاحظات</Label>

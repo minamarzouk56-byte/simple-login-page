@@ -40,8 +40,8 @@ const App = () => (
               <Route path="/" element={<ProtectedRoute requirePermission="dashboard.view"><Dashboard /></ProtectedRoute>} />
               <Route path="/accounts" element={<ProtectedRoute requirePermission="accounts.view"><Accounts /></ProtectedRoute>} />
               <Route path="/journal" element={<ProtectedRoute requirePermission="journal.view"><Journal /></ProtectedRoute>} />
-              <Route path="/customers" element={<ProtectedRoute requirePermission="partners.view"><Customers /></ProtectedRoute>} />
-              <Route path="/suppliers" element={<ProtectedRoute requirePermission="partners.view"><Suppliers /></ProtectedRoute>} />
+              <Route path="/customers" element={<ProtectedRoute requirePermission="customers.view"><Customers /></ProtectedRoute>} />
+              <Route path="/suppliers" element={<ProtectedRoute requirePermission="suppliers.view"><Suppliers /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute requirePermission="reports.view"><Reports /></ProtectedRoute>} />
               <Route path="/users" element={<ProtectedRoute requirePermission="users.manage"><Users /></ProtectedRoute>} />
             </Route>
