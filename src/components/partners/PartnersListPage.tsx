@@ -22,10 +22,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Loader2, MoreHorizontal, FileText, Pencil, Trash2, Search, X, type LucideIcon } from "lucide-react";
+import { Plus, Loader2, MoreHorizontal, FileText, Pencil, Trash2, Search, X, ArrowUp, ArrowDown, ArrowUpDown, type LucideIcon } from "lucide-react";
 import type { Customer, AppPermission } from "@/lib/finhub-types";
 import { PartnerFormDialog } from "./PartnerFormDialog";
 import { PartnerStatementDialog } from "./PartnerStatementDialog";
+import { PartnerOperationsMenu } from "./PartnerOperationsMenu";
+
+type SortKey = "code" | "name" | "account" | "credit_limit" | "balance";
+type SortDir = "asc" | "desc";
 
 interface Props {
   kind: "customer" | "supplier";
@@ -44,6 +48,8 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
   const [currencies, setCurrencies] = useState<Record<string, { name_ar: string; symbol: string }>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("code");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Customer | null>(null);
@@ -105,15 +111,46 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.code.toLowerCase().includes(q) ||
-        (p.phone ?? "").toLowerCase().includes(q) ||
-        (p.email ?? "").toLowerCase().includes(q),
-    );
-  }, [items, search]);
+    const base = !q
+      ? items
+      : items.filter(
+          (p) =>
+            p.name.toLowerCase().includes(q) ||
+            p.code.toLowerCase().includes(q) ||
+            (p.phone ?? "").toLowerCase().includes(q) ||
+            (p.email ?? "").toLowerCase().includes(q),
+        );
+    const sorted = [...base].sort((a, b) => {
+      const dir = sortDir === "asc" ? 1 : -1;
+      const valOf = (p: Customer) => {
+        switch (sortKey) {
+          case "code": return p.code;
+          case "name": return p.name;
+          case "account":
+            return p.account_id && accountsMap[p.account_id]
+              ? accountsMap[p.account_id].code
+              : "";
+          case "credit_limit": return Number(p.credit_limit) || 0;
+          case "balance":
+            return (Number(p.opening_balance) || 0) + (movements[p.id] ?? 0);
+        }
+      };
+      const av = valOf(a);
+      const bv = valOf(b);
+      if (typeof av === "number" && typeof bv === "number") return (av - bv) * dir;
+      return String(av).localeCompare(String(bv), "ar") * dir;
+    });
+    return sorted;
+  }, [items, search, sortKey, sortDir, accountsMap, movements]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortDir("asc"); }
+  };
+  const SortIcon = ({ k }: { k: SortKey }) => {
+    if (sortKey !== k) return <ArrowUpDown className="h-3 w-3 opacity-40" />;
+    return sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
+  };
 
   const fmt = (n: number) => n.toLocaleString("ar-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -141,11 +178,20 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
-        {canCreate && (
-          <Button onClick={openNew} className="gap-2">
-            <Plus className="h-4 w-4" /> {newButtonLabel}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <PartnerOperationsMenu
+            kind={kind}
+            rows={filtered}
+            accountsMap={accountsMap}
+            movements={movements}
+            onImported={load}
+          />
+          {canCreate && (
+            <Button onClick={openNew} className="gap-2">
+              <Plus className="h-4 w-4" /> {newButtonLabel}
+            </Button>
+          )}
+        </div>
       </header>
 
       <div className="relative max-w-md">
@@ -183,11 +229,31 @@ export const PartnersListPage = ({ kind, title, description, Icon, newButtonLabe
               <table className="w-full text-sm">
                 <thead className="bg-muted/40 text-muted-foreground text-xs uppercase tracking-wide">
                   <tr>
-                    <th className="px-4 py-3 text-right font-medium">الكود</th>
-                    <th className="px-4 py-3 text-right font-medium">الاسم</th>
-                    <th className="px-4 py-3 text-right font-medium">حساب الشجرة المرتبط</th>
-                    <th className="px-4 py-3 text-end font-medium">حد الائتمان</th>
-                    <th className="px-4 py-3 text-end font-medium">الرصيد</th>
+                    <th className="px-4 py-3 text-right font-medium">
+                      <button onClick={() => toggleSort("code")} className="inline-flex items-center gap-1.5 hover:text-foreground transition-base">
+                        الكود <SortIcon k="code" />
+                      </button>
+                    </th>
+                    <th className="px-4 py-3 text-right font-medium">
+                      <button onClick={() => toggleSort("name")} className="inline-flex items-center gap-1.5 hover:text-foreground transition-base">
+                        الاسم <SortIcon k="name" />
+                      </button>
+                    </th>
+                    <th className="px-4 py-3 text-right font-medium">
+                      <button onClick={() => toggleSort("account")} className="inline-flex items-center gap-1.5 hover:text-foreground transition-base">
+                        حساب الشجرة المرتبط <SortIcon k="account" />
+                      </button>
+                    </th>
+                    <th className="px-4 py-3 text-end font-medium">
+                      <button onClick={() => toggleSort("credit_limit")} className="inline-flex items-center gap-1.5 hover:text-foreground transition-base ms-auto">
+                        حد الائتمان <SortIcon k="credit_limit" />
+                      </button>
+                    </th>
+                    <th className="px-4 py-3 text-end font-medium">
+                      <button onClick={() => toggleSort("balance")} className="inline-flex items-center gap-1.5 hover:text-foreground transition-base ms-auto">
+                        الرصيد <SortIcon k="balance" />
+                      </button>
+                    </th>
                     <th className="px-4 py-3 text-end font-medium w-32">الإجراءات</th>
                   </tr>
                 </thead>
