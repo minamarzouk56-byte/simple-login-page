@@ -182,10 +182,10 @@ const TreeRow = ({
             <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
           )}
         </button>
-        <span className="font-mono text-xs tabular-nums text-muted-foreground w-14 shrink-0">{node.code}</span>
-        <span className="flex-1 truncate font-medium text-foreground">{node.name_ar}</span>
+        <span className="flex-1 truncate font-medium text-foreground">{node.name}</span>
+        <Badge variant="outline" className="font-mono text-xs tabular-nums">{node.code}</Badge>
         <Badge variant="secondary" className="text-xs hidden sm:inline-flex">
-          {ACCOUNT_TYPE_LABELS_AR[node.account_type]}
+          {ACCOUNT_TYPE_LABELS_AR[node.type]}
         </Badge>
         {canCreate && (
           <Button
