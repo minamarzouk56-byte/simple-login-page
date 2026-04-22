@@ -75,16 +75,22 @@ const Inventory = () => {
 
   const load = async () => {
     setLoading(true);
-    const [p, w, b] = await Promise.all([
+    const [p, w, b, s, a] = await Promise.all([
       supabase.from("items").select("*"),
       supabase.from("warehouses").select("*"),
       supabase.from("batches").select("*").gt("remaining_quantity", 0).order("created_at", { ascending: true }),
+      supabase.from("suppliers").select("*"),
+      supabase.from("accounts").select("*"),
     ]);
     const products = (p.data ?? []) as Product[];
     const warehouses = (w.data ?? []) as Warehouse[];
     const batches = (b.data ?? []) as Batch[];
+    const suppliers = (s.data ?? []) as Supplier[];
+    const accounts = (a.data ?? []) as Account[];
     const prodMap = new Map(products.map((x) => [x.id, x]));
     const whMap = new Map(warehouses.map((x) => [x.id, x]));
+    const supMap = new Map(suppliers.map((x) => [x.id, x]));
+    const accMap = new Map(accounts.map((x) => [x.id, x]));
 
     // إجمالي الكميات المتاحة لكل منتج (من كل الباتشات)
     const productTotals = new Map<string, number>();
@@ -101,6 +107,8 @@ const Inventory = () => {
       const product = prodMap.get(bt.product_id);
       if (!product) return acc;
       const wh = whMap.get(bt.warehouse_id);
+      const sup = bt.supplier_id ? supMap.get(bt.supplier_id) : null;
+      const account = bt.account_id ? accMap.get(bt.account_id) : null;
       const qty = Number(bt.remaining_quantity);
       const productTotal = productTotals.get(product.id) ?? 0;
       acc.push({
@@ -108,6 +116,10 @@ const Inventory = () => {
         product,
         warehouse_name: wh?.name ?? "—",
         warehouse_code: wh?.code ?? "—",
+        supplier_name: sup?.name ?? "—",
+        supplier_code: sup?.code ?? "—",
+        account_name: account?.name ?? "—",
+        account_code: account?.code ?? "—",
         value: qty * Number(bt.unit_cost),
         low: product.min_stock > 0 && productTotal <= product.min_stock,
       });
