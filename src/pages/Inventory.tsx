@@ -175,7 +175,7 @@ const Inventory = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((r) => (
+                {filtered.filter((r) => r && r.batch && r.product).map((r) => (
                   <TableRow key={r.batch.id}>
                     <TableCell>
                       <span className="inline-flex items-center rounded-md border border-primary/30 bg-primary/5 px-2 py-1 font-mono text-xs font-semibold text-primary">
