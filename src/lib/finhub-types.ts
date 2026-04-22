@@ -30,7 +30,11 @@ export type AppPermission =
   | "inventory.approve"
   | "invoices.view"
   | "invoices.manage"
-  | "invoices.approve";
+  | "invoices.approve"
+  | "stock_requests.create"
+  | "stock_requests.view_own"
+  | "stock_requests.manage"
+  | "stock_requests.settle";
 
 export interface Profile {
   id: string;
@@ -158,6 +162,10 @@ export const PERMISSION_LABELS_AR: Record<AppPermission, string> = {
   "invoices.view": "عرض الطلبات والفواتير",
   "invoices.manage": "إدارة الطلبات والفواتير",
   "invoices.approve": "تأكيد الطلبات النهائية",
+  "stock_requests.create": "إنشاء طلبات إذن المخزون",
+  "stock_requests.view_own": "عرض طلباتي المرسلة",
+  "stock_requests.manage": "إدارة كل طلبات المخزون",
+  "stock_requests.settle": "تسوية طلبات المخزون",
 };
 
 // =============== Inventory / Products / Batches / Orders ===============
@@ -302,6 +310,54 @@ export interface StockMovement {
   description: string | null;
   movement_date: string;
   created_by: string | null;
+}
+
+// =============== Stock Requests ===============
+
+export type StockRequestType = "add" | "issue" | "sale_return" | "purchase_return";
+export type StockRequestStatus = "pending" | "settled" | "rejected" | "cancelled";
+
+export const STOCK_REQUEST_TYPE_LABELS_AR: Record<StockRequestType, string> = {
+  add: "طلب إضافة مخزون",
+  issue: "طلب صرف مخزون",
+  sale_return: "طلب إرجاع مبيعات",
+  purchase_return: "طلب إرجاع مشتريات",
+};
+
+export const STOCK_REQUEST_STATUS_LABELS_AR: Record<StockRequestStatus, string> = {
+  pending: "قيد المراجعة",
+  settled: "تمت التسوية",
+  rejected: "مرفوض",
+  cancelled: "ملغي",
+};
+
+export interface StockRequest {
+  id: string;
+  request_number: string;
+  request_type: StockRequestType;
+  request_date: string;
+  status: StockRequestStatus;
+  customer_id: string | null;
+  supplier_id: string | null;
+  notes: string | null;
+  review_notes: string | null;
+  created_by: string;
+  settled_by: string | null;
+  settled_at: string | null;
+  related_order_id: string | null;
+  journal_entry_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StockRequestLine {
+  id: string;
+  request_id: string;
+  product_id: string;
+  quantity: number;
+  unit_price: number | null;
+  notes: string | null;
+  line_order: number;
 }
 
 export const ACCOUNT_TYPE_LABELS_AR: Record<AccountType, string> = {

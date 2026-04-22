@@ -19,7 +19,8 @@ import Users from "./pages/Users";
 import Products from "./pages/Products";
 import Inventory from "./pages/Inventory";
 import InventoryMovements from "./pages/InventoryMovements";
-import Orders from "./pages/Orders";
+import StockRequests from "./pages/StockRequests";
+import ManageStockRequests from "./pages/ManageStockRequests";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,8 +52,8 @@ const App = () => (
               <Route path="/products" element={<ProtectedRoute requirePermission="inventory.view"><Products /></ProtectedRoute>} />
               <Route path="/inventory" element={<ProtectedRoute requirePermission="inventory.view"><Inventory /></ProtectedRoute>} />
               <Route path="/inventory/movements" element={<ProtectedRoute requirePermission="inventory.view"><InventoryMovements /></ProtectedRoute>} />
-              <Route path="/orders/purchases" element={<ProtectedRoute requirePermission="invoices.view"><Orders scope="purchase" /></ProtectedRoute>} />
-              <Route path="/orders/sales" element={<ProtectedRoute requirePermission="invoices.view"><Orders scope="sale" /></ProtectedRoute>} />
+              <Route path="/stock-requests" element={<ProtectedRoute requirePermission="stock_requests.create"><StockRequests /></ProtectedRoute>} />
+              <Route path="/stock-requests/manage" element={<ProtectedRoute requirePermission="stock_requests.manage"><ManageStockRequests /></ProtectedRoute>} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
