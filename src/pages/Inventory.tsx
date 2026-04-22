@@ -1,16 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Boxes, Loader2, Search, X, AlertTriangle, Wallet, Layers, PackagePlus } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Boxes, Loader2, Search, X, AlertTriangle, Wallet, Layers, PackagePlus, MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
 import type { Product, Warehouse, Batch } from "@/lib/finhub-types";
-import { fmtNumber } from "@/lib/inventory-utils";
+import { fmtNumber, fmtQty } from "@/lib/inventory-utils";
 import { AddStockDialog } from "@/components/inventory/AddStockDialog";
+import { BatchDetailsDialog } from "@/components/inventory/BatchDetailsDialog";
+import { EditBatchDialog } from "@/components/inventory/EditBatchDialog";
 
 interface BatchRow {
   batch: Batch;
