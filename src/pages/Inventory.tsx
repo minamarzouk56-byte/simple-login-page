@@ -41,19 +41,30 @@ const Inventory = () => {
     const prodMap = new Map(products.map((x) => [x.id, x]));
     const whMap = new Map(warehouses.map((x) => [x.id, x]));
 
+    // إجمالي الكميات المتاحة لكل منتج (من كل الباتشات)
+    const productTotals = new Map<string, number>();
+    for (const bt of batches) {
+      if (!bt || !bt.product_id) continue;
+      productTotals.set(
+        bt.product_id,
+        (productTotals.get(bt.product_id) ?? 0) + Number(bt.remaining_quantity),
+      );
+    }
+
     const result: BatchRow[] = batches.reduce<BatchRow[]>((acc, bt) => {
       if (!bt || !bt.product_id) return acc;
       const product = prodMap.get(bt.product_id);
       if (!product) return acc;
       const wh = whMap.get(bt.warehouse_id);
       const qty = Number(bt.remaining_quantity);
+      const productTotal = productTotals.get(product.id) ?? 0;
       acc.push({
         batch: bt,
         product,
         warehouse_name: wh?.name ?? "—",
         warehouse_code: wh?.code ?? "—",
         value: qty * Number(bt.unit_cost),
-        low: product.min_stock > 0 && qty <= product.min_stock,
+        low: product.min_stock > 0 && productTotal <= product.min_stock,
       });
       return acc;
     }, []);
