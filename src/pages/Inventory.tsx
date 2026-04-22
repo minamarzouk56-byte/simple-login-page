@@ -16,7 +16,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Boxes, Loader2, Search, X, AlertTriangle, Wallet, Layers, PackagePlus, MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
-import type { Product, Warehouse, Batch } from "@/lib/finhub-types";
+import type { Product, Warehouse, Batch, Supplier, Account } from "@/lib/finhub-types";
 import { fmtNumber, fmtQty } from "@/lib/inventory-utils";
 import { AddStockDialog } from "@/components/inventory/AddStockDialog";
 import { BatchDetailsDialog } from "@/components/inventory/BatchDetailsDialog";
@@ -27,6 +27,10 @@ interface BatchRow {
   product: Product;
   warehouse_name: string;
   warehouse_code: string;
+  supplier_name: string;
+  supplier_code: string;
+  account_name: string;
+  account_code: string;
   value: number;
   low: boolean;
 }
