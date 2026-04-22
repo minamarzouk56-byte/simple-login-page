@@ -329,6 +329,7 @@ export type Database = {
         Row: {
           counterparty_account_id: string | null
           created_at: string
+          customer_id: string | null
           description: string | null
           id: string
           journal_entry_id: string | null
@@ -341,6 +342,7 @@ export type Database = {
           reviewed_at: string | null
           reviewed_by: string | null
           status: Database["public"]["Enums"]["permit_status"]
+          supplier_id: string | null
           total_amount: number
           updated_at: string
           warehouse_id: string
@@ -348,6 +350,7 @@ export type Database = {
         Insert: {
           counterparty_account_id?: string | null
           created_at?: string
+          customer_id?: string | null
           description?: string | null
           id?: string
           journal_entry_id?: string | null
@@ -360,6 +363,7 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: Database["public"]["Enums"]["permit_status"]
+          supplier_id?: string | null
           total_amount?: number
           updated_at?: string
           warehouse_id: string
@@ -367,6 +371,7 @@ export type Database = {
         Update: {
           counterparty_account_id?: string | null
           created_at?: string
+          customer_id?: string | null
           description?: string | null
           id?: string
           journal_entry_id?: string | null
@@ -379,6 +384,7 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: Database["public"]["Enums"]["permit_status"]
+          supplier_id?: string | null
           total_amount?: number
           updated_at?: string
           warehouse_id?: string
@@ -392,10 +398,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "inventory_permits_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "inventory_permits_journal_entry_id_fkey"
             columns: ["journal_entry_id"]
             isOneToOne: false
             referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_permits_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
           {
@@ -454,6 +474,338 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      invoice_lines: {
+        Row: {
+          id: string
+          invoice_id: string
+          item_id: string
+          line_order: number
+          line_total: number
+          notes: string | null
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          id?: string
+          invoice_id: string
+          item_id: string
+          line_order?: number
+          line_total?: number
+          notes?: string | null
+          quantity?: number
+          unit_price?: number
+        }
+        Update: {
+          id?: string
+          invoice_id?: string
+          item_id?: string
+          line_order?: number
+          line_total?: number
+          notes?: string | null
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_lines_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_lines_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_request_lines: {
+        Row: {
+          id: string
+          item_id: string
+          line_order: number
+          line_total: number
+          notes: string | null
+          quantity: number
+          request_id: string
+          unit_price: number
+        }
+        Insert: {
+          id?: string
+          item_id: string
+          line_order?: number
+          line_total?: number
+          notes?: string | null
+          quantity?: number
+          request_id: string
+          unit_price?: number
+        }
+        Update: {
+          id?: string
+          item_id?: string
+          line_order?: number
+          line_total?: number
+          notes?: string | null
+          quantity?: number
+          request_id?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_request_lines_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_request_lines_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_requests: {
+        Row: {
+          counterparty_account_id: string
+          created_at: string
+          created_by: string
+          customer_id: string | null
+          discount_amount: number
+          id: string
+          invoice_id: string | null
+          invoice_type: Database["public"]["Enums"]["invoice_type"]
+          notes: string | null
+          permit_id: string | null
+          request_date: string
+          request_number: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["invoice_request_status"]
+          subtotal: number
+          supplier_id: string | null
+          tax_amount: number
+          tax_percent: number
+          total_amount: number
+          updated_at: string
+          warehouse_id: string
+        }
+        Insert: {
+          counterparty_account_id: string
+          created_at?: string
+          created_by: string
+          customer_id?: string | null
+          discount_amount?: number
+          id?: string
+          invoice_id?: string | null
+          invoice_type: Database["public"]["Enums"]["invoice_type"]
+          notes?: string | null
+          permit_id?: string | null
+          request_date?: string
+          request_number: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["invoice_request_status"]
+          subtotal?: number
+          supplier_id?: string | null
+          tax_amount?: number
+          tax_percent?: number
+          total_amount?: number
+          updated_at?: string
+          warehouse_id: string
+        }
+        Update: {
+          counterparty_account_id?: string
+          created_at?: string
+          created_by?: string
+          customer_id?: string | null
+          discount_amount?: number
+          id?: string
+          invoice_id?: string | null
+          invoice_type?: Database["public"]["Enums"]["invoice_type"]
+          notes?: string | null
+          permit_id?: string | null
+          request_date?: string
+          request_number?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["invoice_request_status"]
+          subtotal?: number
+          supplier_id?: string | null
+          tax_amount?: number
+          tax_percent?: number
+          total_amount?: number
+          updated_at?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_requests_counterparty_account_id_fkey"
+            columns: ["counterparty_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_requests_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_requests_permit_id_fkey"
+            columns: ["permit_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_permits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_requests_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_requests_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          counterparty_account_id: string
+          created_at: string
+          created_by: string
+          customer_id: string | null
+          discount_amount: number
+          id: string
+          invoice_date: string
+          invoice_number: string
+          invoice_type: Database["public"]["Enums"]["invoice_type"]
+          journal_entry_id: string | null
+          notes: string | null
+          permit_id: string | null
+          request_id: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          subtotal: number
+          supplier_id: string | null
+          tax_amount: number
+          tax_percent: number
+          total_amount: number
+          updated_at: string
+          warehouse_id: string
+        }
+        Insert: {
+          counterparty_account_id: string
+          created_at?: string
+          created_by: string
+          customer_id?: string | null
+          discount_amount?: number
+          id?: string
+          invoice_date?: string
+          invoice_number: string
+          invoice_type: Database["public"]["Enums"]["invoice_type"]
+          journal_entry_id?: string | null
+          notes?: string | null
+          permit_id?: string | null
+          request_id?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          supplier_id?: string | null
+          tax_amount?: number
+          tax_percent?: number
+          total_amount?: number
+          updated_at?: string
+          warehouse_id: string
+        }
+        Update: {
+          counterparty_account_id?: string
+          created_at?: string
+          created_by?: string
+          customer_id?: string | null
+          discount_amount?: number
+          id?: string
+          invoice_date?: string
+          invoice_number?: string
+          invoice_type?: Database["public"]["Enums"]["invoice_type"]
+          journal_entry_id?: string | null
+          notes?: string | null
+          permit_id?: string | null
+          request_id?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          supplier_id?: string | null
+          tax_amount?: number
+          tax_percent?: number
+          total_amount?: number
+          updated_at?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_counterparty_account_id_fkey"
+            columns: ["counterparty_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_permit_id_fkey"
+            columns: ["permit_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_permits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       item_categories: {
         Row: {
@@ -980,6 +1332,25 @@ export type Database = {
         Args: { _permit_id: string; _review_notes?: string }
         Returns: string
       }
+      confirm_invoice_request: {
+        Args: {
+          _discount_amount?: number
+          _notes?: string
+          _request_id: string
+          _tax_percent?: number
+        }
+        Returns: string
+      }
+      create_invoice_request_from_permit: {
+        Args: {
+          _discount_amount?: number
+          _line_prices?: Json
+          _notes?: string
+          _permit_id: string
+          _tax_percent?: number
+        }
+        Returns: string
+      }
       has_permission: {
         Args: {
           _permission: Database["public"]["Enums"]["app_permission"]
@@ -987,9 +1358,21 @@ export type Database = {
         }
         Returns: boolean
       }
+      hold_inventory_permit: {
+        Args: { _permit_id: string; _review_notes?: string }
+        Returns: undefined
+      }
+      hold_invoice_request: {
+        Args: { _request_id: string; _review_notes?: string }
+        Returns: undefined
+      }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       reject_inventory_permit: {
         Args: { _permit_id: string; _review_notes?: string }
+        Returns: undefined
+      }
+      reject_invoice_request: {
+        Args: { _request_id: string; _review_notes?: string }
         Returns: undefined
       }
     }
@@ -1024,16 +1407,28 @@ export type Database = {
         | "inventory.manage"
         | "inventory.request"
         | "inventory.approve"
+        | "invoices.view"
+        | "invoices.manage"
+        | "invoices.approve"
       custody_status: "active" | "settled" | "cancelled"
       inventory_request_status:
         | "pending"
         | "approved"
         | "rejected"
         | "fulfilled"
+      invoice_request_status: "pending" | "confirmed" | "rejected" | "on_hold"
+      invoice_status: "confirmed" | "cancelled"
+      invoice_type: "sale" | "purchase" | "sale_return" | "purchase_return"
       journal_status: "posted"
       movement_type: "in" | "out" | "adjust" | "transfer"
-      permit_status: "pending" | "approved" | "rejected" | "cancelled"
-      permit_type: "issue" | "receive"
+      permit_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "cancelled"
+        | "on_hold"
+        | "invoiced"
+      permit_type: "issue" | "receive" | "sales_return" | "purchase_return"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1191,6 +1586,9 @@ export const Constants = {
         "inventory.manage",
         "inventory.request",
         "inventory.approve",
+        "invoices.view",
+        "invoices.manage",
+        "invoices.approve",
       ],
       custody_status: ["active", "settled", "cancelled"],
       inventory_request_status: [
@@ -1199,10 +1597,20 @@ export const Constants = {
         "rejected",
         "fulfilled",
       ],
+      invoice_request_status: ["pending", "confirmed", "rejected", "on_hold"],
+      invoice_status: ["confirmed", "cancelled"],
+      invoice_type: ["sale", "purchase", "sale_return", "purchase_return"],
       journal_status: ["posted"],
       movement_type: ["in", "out", "adjust", "transfer"],
-      permit_status: ["pending", "approved", "rejected", "cancelled"],
-      permit_type: ["issue", "receive"],
+      permit_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "cancelled",
+        "on_hold",
+        "invoiced",
+      ],
+      permit_type: ["issue", "receive", "sales_return", "purchase_return"],
     },
   },
 } as const
