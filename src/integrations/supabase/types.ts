@@ -1113,6 +1113,10 @@ export type Database = {
         | "invoices.view"
         | "invoices.manage"
         | "invoices.approve"
+        | "stock_requests.create"
+        | "stock_requests.view_own"
+        | "stock_requests.manage"
+        | "stock_requests.settle"
       custody_status: "active" | "settled" | "cancelled"
       journal_status: "posted"
       movement_type: "in" | "out" | "adjust" | "transfer"
@@ -1285,6 +1289,10 @@ export const Constants = {
         "invoices.view",
         "invoices.manage",
         "invoices.approve",
+        "stock_requests.create",
+        "stock_requests.view_own",
+        "stock_requests.manage",
+        "stock_requests.settle",
       ],
       custody_status: ["active", "settled", "cancelled"],
       journal_status: ["posted"],
