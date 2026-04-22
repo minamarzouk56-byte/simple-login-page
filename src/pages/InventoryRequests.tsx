@@ -312,6 +312,11 @@ const InventoryRequests = () => {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setViewing(null)}>إغلاق</Button>
+            {canApprove && viewing?.status === "approved" && (
+              <Button onClick={() => { setSettling(viewing); setViewing(null); }}>
+                <Receipt className="h-4 w-4" /> تسوية الطلب
+              </Button>
+            )}
             {canApprove && viewing?.status === "pending" && (
               <>
                 <Button variant="destructive" onClick={reject} disabled={actionLoading}>
@@ -327,6 +332,12 @@ const InventoryRequests = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <SettlePermitDialog
+        permit={settling}
+        onClose={() => setSettling(null)}
+        onSettled={load}
+      />
     </div>
   );
 };
