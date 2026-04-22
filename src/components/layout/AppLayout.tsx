@@ -19,6 +19,10 @@ import {
   FilePlus2,
   ClipboardCheck,
   ArrowLeftRight,
+  FileText,
+  ReceiptText,
+  ShoppingCart,
+  Receipt,
 } from "lucide-react";
 import type { AppPermission } from "@/lib/finhub-types";
 
@@ -63,6 +67,16 @@ const NAV_ITEMS: NavNode[] = [
       { to: "/inventory/movements", label: "حركات المخزن", icon: ArrowLeftRight, permission: "inventory.view" },
     ],
   },
+  {
+    label: "الفواتير",
+    icon: Receipt,
+    prefix: "/invoices",
+    children: [
+      { to: "/invoices/requests", label: "إدارة طلبات الفواتير", icon: FileText },
+      { to: "/invoices/sales", label: "فواتير البيع المؤكدة", icon: ReceiptText },
+      { to: "/invoices/purchases", label: "فواتير الشراء المؤكدة", icon: ShoppingCart },
+    ],
+  },
   { to: "/reports", label: "التقارير المالية", icon: BarChart3, permission: "reports.view" },
   { to: "/users", label: "المستخدمون والصلاحيات", icon: Shield, permission: "users.manage" },
 ];
@@ -77,6 +91,9 @@ const PAGE_TITLES: Record<string, string> = {
   "/inventory/new-request": "طلب إذن جديد",
   "/inventory/requests": "إدارة الطلبات",
   "/inventory/movements": "حركات المخزن",
+  "/invoices/requests": "إدارة طلبات الفواتير",
+  "/invoices/sales": "فواتير البيع المؤكدة",
+  "/invoices/purchases": "فواتير الشراء المؤكدة",
   "/reports": "التقارير المالية",
   "/users": "المستخدمون والصلاحيات",
 };
