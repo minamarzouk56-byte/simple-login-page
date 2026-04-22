@@ -41,20 +41,22 @@ const Inventory = () => {
     const prodMap = new Map(products.map((x) => [x.id, x]));
     const whMap = new Map(warehouses.map((x) => [x.id, x]));
 
-    const result: BatchRow[] = batches.map((bt) => {
+    const result: BatchRow[] = batches.reduce<BatchRow[]>((acc, bt) => {
+      if (!bt || !bt.product_id) return acc;
       const product = prodMap.get(bt.product_id);
+      if (!product) return acc;
       const wh = whMap.get(bt.warehouse_id);
-      if (!product) return null;
       const qty = Number(bt.remaining_quantity);
-      return {
+      acc.push({
         batch: bt,
         product,
         warehouse_name: wh?.name ?? "—",
         warehouse_code: wh?.code ?? "—",
         value: qty * Number(bt.unit_cost),
         low: product.min_stock > 0 && qty <= product.min_stock,
-      };
-    }).filter(Boolean) as BatchRow[];
+      });
+      return acc;
+    }, []);
 
     setRows(result);
     setLoading(false);
