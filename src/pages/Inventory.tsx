@@ -87,9 +87,10 @@ const Inventory = () => {
   const stats = useMemo(() => {
     const batch_count = rows.length;
     const distinct_products = new Set(rows.map((r) => r.product.id)).size;
-    const low = rows.filter((r) => r.low).length;
+    // منتجات بمخزون منخفض (نحسبها مرة واحدة لكل منتج)
+    const lowProducts = new Set(rows.filter((r) => r.low).map((r) => r.product.id));
     const value = rows.reduce((s, r) => s + r.value, 0);
-    return { distinct_products, batch_count, low, value };
+    return { distinct_products, batch_count, low: lowProducts.size, value };
   }, [rows]);
 
   return (
