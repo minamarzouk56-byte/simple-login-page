@@ -227,9 +227,9 @@ const InventoryItems = () => {
               <CardContent className="p-4 flex items-center justify-between">
                 <div>
                   <div className="text-xs text-muted-foreground">أصناف نشطة</div>
-                  <div className="text-2xl font-bold tabular-nums mt-1 text-green-600 dark:text-green-400">{stats.active}</div>
+                  <div className="text-2xl font-bold tabular-nums mt-1 text-primary">{stats.active}</div>
                 </div>
-                <CheckCircle2 className="h-8 w-8 text-green-600/60 dark:text-green-400/60" />
+                <CheckCircle2 className="h-8 w-8 text-primary/60" />
               </CardContent>
             </Card>
             <Card>
