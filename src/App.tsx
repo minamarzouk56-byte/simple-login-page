@@ -19,6 +19,7 @@ import Users from "./pages/Users";
 import Products from "./pages/Products";
 import Inventory from "./pages/Inventory";
 import InventoryMovements from "./pages/InventoryMovements";
+import Orders from "./pages/Orders";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +51,8 @@ const App = () => (
               <Route path="/products" element={<ProtectedRoute requirePermission="inventory.view"><Products /></ProtectedRoute>} />
               <Route path="/inventory" element={<ProtectedRoute requirePermission="inventory.view"><Inventory /></ProtectedRoute>} />
               <Route path="/inventory/movements" element={<ProtectedRoute requirePermission="inventory.view"><InventoryMovements /></ProtectedRoute>} />
+              <Route path="/orders/purchases" element={<ProtectedRoute requirePermission="invoices.view"><Orders scope="purchase" /></ProtectedRoute>} />
+              <Route path="/orders/sales" element={<ProtectedRoute requirePermission="invoices.view"><Orders scope="sale" /></ProtectedRoute>} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

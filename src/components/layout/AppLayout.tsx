@@ -17,6 +17,9 @@ import {
   Package,
   Boxes,
   ArrowLeftRight,
+  ShoppingCart,
+  ReceiptText,
+  Receipt,
 } from "lucide-react";
 import type { AppPermission } from "@/lib/finhub-types";
 
@@ -60,6 +63,16 @@ const NAV_ITEMS: NavNode[] = [
       { to: "/inventory/movements", label: "حركات المخزن", icon: ArrowLeftRight, permission: "inventory.view" },
     ],
   },
+  {
+    label: "الطلبات والفواتير",
+    icon: Receipt,
+    prefix: "/orders",
+    anyPermission: ["invoices.view", "invoices.manage", "invoices.approve"],
+    children: [
+      { to: "/orders/purchases", label: "طلبات الشراء", icon: ShoppingCart, anyPermission: ["invoices.view", "invoices.manage", "invoices.approve"] },
+      { to: "/orders/sales", label: "طلبات البيع", icon: ReceiptText, anyPermission: ["invoices.view", "invoices.manage", "invoices.approve"] },
+    ],
+  },
   { to: "/reports", label: "التقارير المالية", icon: BarChart3, permission: "reports.view" },
   { to: "/users", label: "المستخدمون والصلاحيات", icon: Shield, permission: "users.manage" },
 ];
@@ -73,6 +86,8 @@ const PAGE_TITLES: Record<string, string> = {
   "/products": "المنتجات",
   "/inventory": "إدارة المخزون",
   "/inventory/movements": "حركات المخزن",
+  "/orders/purchases": "طلبات الشراء",
+  "/orders/sales": "طلبات البيع",
   "/reports": "التقارير المالية",
   "/users": "المستخدمون والصلاحيات",
 };
