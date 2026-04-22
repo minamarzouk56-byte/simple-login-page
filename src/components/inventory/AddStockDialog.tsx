@@ -164,7 +164,7 @@ export const AddStockDialog = ({ open, onClose, onSaved }: Props) => {
             إضافة مخزون
           </DialogTitle>
           <DialogDescription>
-            اختر منتجاً موجوداً وأدخل الكمية وتكلفة الشراء والمخزن. سيتم تجميع الدُفعات تلقائياً عند تطابق (المنتج + المخزن + التكلفة).
+            اختر منتجاً وأدخل المورد، الحساب، الكمية، تكلفة الشراء والمخزن. يتم تجميع الدُفعات تلقائياً عند تطابق (المنتج + المخزن + المورد + الحساب + التكلفة).
           </DialogDescription>
         </DialogHeader>
 
@@ -179,6 +179,26 @@ export const AddStockDialog = ({ open, onClose, onSaved }: Props) => {
                 onChange={setProductId}
                 options={products.map((p) => ({ value: p.id, label: p.name, prefix: p.code }))}
                 placeholder="اختر منتج من القائمة"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>المورد *</Label>
+              <SearchableSelect
+                value={supplierId}
+                onChange={setSupplierId}
+                options={suppliers.map((s) => ({ value: s.id, label: s.name, prefix: s.code }))}
+                placeholder="اختر المورد"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>حساب شجرة الحسابات *</Label>
+              <SearchableSelect
+                value={accountId}
+                onChange={setAccountId}
+                options={accounts.map((a) => ({ value: a.id, label: a.name, prefix: a.code }))}
+                placeholder="اختر الحساب"
               />
             </div>
 
