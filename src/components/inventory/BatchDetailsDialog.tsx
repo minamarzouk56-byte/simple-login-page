@@ -5,7 +5,7 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2, Layers } from "lucide-react";
 import type { Batch, Product, Warehouse, StockMovement } from "@/lib/finhub-types";
-import { fmtNumber, fmtQty, fmtDateTime, MOVEMENT_TYPE_LABELS_AR_FALLBACK } from "@/lib/inventory-utils";
+import { fmtNumber, fmtQty, fmtDateTime } from "@/lib/inventory-utils";
 import { MOVEMENT_TYPE_LABELS_AR } from "@/lib/finhub-types";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
