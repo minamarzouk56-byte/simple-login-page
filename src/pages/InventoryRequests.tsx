@@ -33,6 +33,8 @@ const STATUS_VARIANT: Record<PermitStatus, "default" | "outline" | "destructive"
   approved: "default",
   rejected: "destructive",
   cancelled: "outline",
+  on_hold: "secondary",
+  invoiced: "default",
 };
 
 const InventoryRequests = () => {
