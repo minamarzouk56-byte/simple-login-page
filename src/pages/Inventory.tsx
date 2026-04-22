@@ -139,8 +139,6 @@ const Inventory = () => {
             <AlertTriangle className="h-8 w-8 text-destructive/60" />
           </CardContent>
         </Card>
-          </CardContent>
-        </Card>
         <Card>
           <CardContent className="p-4 flex items-center justify-between">
             <div>
