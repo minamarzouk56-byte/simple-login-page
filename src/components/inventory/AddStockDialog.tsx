@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Loader2, PackagePlus } from "lucide-react";
-import type { Product, Warehouse, Batch } from "@/lib/finhub-types";
+import type { Product, Warehouse, Batch, Supplier, Account } from "@/lib/finhub-types";
 import { fmtNumber } from "@/lib/inventory-utils";
 
 interface Props {
@@ -27,23 +27,35 @@ export const AddStockDialog = ({ open, onClose, onSaved }: Props) => {
   const [saving, setSaving] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [productId, setProductId] = useState("");
   const [warehouseId, setWarehouseId] = useState("");
+  const [supplierId, setSupplierId] = useState("");
+  const [accountId, setAccountId] = useState("");
   const [quantity, setQuantity] = useState("");
   const [unitCost, setUnitCost] = useState("");
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
     if (!open) return;
-    setProductId(""); setWarehouseId(""); setQuantity(""); setUnitCost(""); setNotes("");
+    setProductId(""); setWarehouseId(""); setSupplierId(""); setAccountId("");
+    setQuantity(""); setUnitCost(""); setNotes("");
     (async () => {
       setLoading(true);
-      const [p, w] = await Promise.all([
+      const [p, w, s, a] = await Promise.all([
         supabase.from("items").select("*").eq("is_active", true).order("code"),
         supabase.from("warehouses").select("*").eq("is_active", true).order("code"),
+        supabase.from("suppliers").select("*").eq("is_active", true).order("code"),
+        supabase.from("accounts").select("*").eq("is_active", true).order("code"),
       ]);
       setProducts((p.data ?? []) as Product[]);
       setWarehouses((w.data ?? []) as Warehouse[]);
+      setSuppliers((s.data ?? []) as Supplier[]);
+      const allAccounts = (a.data ?? []) as Account[];
+      // فقط الحسابات الفرعية (آخر مستوى)
+      const parentIds = new Set(allAccounts.map((x) => x.parent_id).filter(Boolean) as string[]);
+      setAccounts(allAccounts.filter((x) => !parentIds.has(x.id)));
       setLoading(false);
     })();
   }, [open]);
