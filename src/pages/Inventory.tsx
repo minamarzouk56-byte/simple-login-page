@@ -1,16 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Boxes, Loader2, Search, X, AlertTriangle, Wallet, Layers, PackagePlus } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Boxes, Loader2, Search, X, AlertTriangle, Wallet, Layers, PackagePlus, MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
 import type { Product, Warehouse, Batch } from "@/lib/finhub-types";
-import { fmtNumber } from "@/lib/inventory-utils";
+import { fmtNumber, fmtQty } from "@/lib/inventory-utils";
 import { AddStockDialog } from "@/components/inventory/AddStockDialog";
+import { BatchDetailsDialog } from "@/components/inventory/BatchDetailsDialog";
+import { EditBatchDialog } from "@/components/inventory/EditBatchDialog";
 
 interface BatchRow {
   batch: Batch;
@@ -23,10 +33,41 @@ interface BatchRow {
 
 const Inventory = () => {
   useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<BatchRow[]>([]);
   const [search, setSearch] = useState("");
   const [addOpen, setAddOpen] = useState(false);
+  const [detailsRow, setDetailsRow] = useState<BatchRow | null>(null);
+  const [editRow, setEditRow] = useState<BatchRow | null>(null);
+  const [deleteRow, setDeleteRow] = useState<BatchRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!deleteRow) return;
+    const consumed = Number(deleteRow.batch.quantity) - Number(deleteRow.batch.remaining_quantity);
+    if (consumed > 0) {
+      toast({
+        title: "لا يمكن حذف الدُفعة",
+        description: `تم استهلاك ${consumed} ${deleteRow.product.unit} من هذه الدُفعة في عمليات سابقة`,
+        variant: "destructive",
+      });
+      setDeleteRow(null);
+      return;
+    }
+    setDeleting(true);
+    // امسح حركات المخزون المرتبطة (الإضافة اليدوية فقط) ثم الدُفعة
+    await supabase.from("stock_movements").delete().eq("batch_id", deleteRow.batch.id);
+    const { error } = await supabase.from("batches").delete().eq("id", deleteRow.batch.id);
+    setDeleting(false);
+    if (error) {
+      toast({ title: "فشل الحذف", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "تم حذف الدُفعة" });
+    setDeleteRow(null);
+    load();
+  };
 
   const load = async () => {
     setLoading(true);
@@ -184,6 +225,7 @@ const Inventory = () => {
                   <TableHead className="text-end">تكلفة الوحدة</TableHead>
                   <TableHead className="text-end">الكمية</TableHead>
                   <TableHead className="text-end">قيمة الدُفعة</TableHead>
+                  <TableHead className="w-[60px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -204,10 +246,31 @@ const Inventory = () => {
                     </TableCell>
                     <TableCell className="text-end tabular-nums">{fmtNumber(Number(r.batch.unit_cost))}</TableCell>
                     <TableCell className={`text-end tabular-nums font-bold ${r.low ? "text-destructive" : ""}`}>
-                      {fmtNumber(Number(r.batch.remaining_quantity))} {r.product.unit}
+                      {fmtQty(Number(r.batch.remaining_quantity))} {r.product.unit}
                       {r.low && <AlertTriangle className="inline h-3.5 w-3.5 mr-1" />}
                     </TableCell>
                     <TableCell className="text-end tabular-nums font-medium">{fmtNumber(r.value)}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem onClick={() => setDetailsRow(r)}>
+                            <Eye className="h-4 w-4 ml-2" /> عرض التفاصيل
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setEditRow(r)}>
+                            <Pencil className="h-4 w-4 ml-2" /> تعديل
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => setDeleteRow(r)} className="text-destructive focus:text-destructive">
+                            <Trash2 className="h-4 w-4 ml-2" /> حذف
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -217,6 +280,46 @@ const Inventory = () => {
       </Card>
 
       <AddStockDialog open={addOpen} onClose={() => setAddOpen(false)} onSaved={load} />
+
+      <BatchDetailsDialog
+        open={!!detailsRow}
+        onClose={() => setDetailsRow(null)}
+        batch={detailsRow?.batch ?? null}
+        product={detailsRow?.product ?? null}
+        warehouseName={detailsRow?.warehouse_name ?? ""}
+        warehouseCode={detailsRow?.warehouse_code ?? ""}
+      />
+
+      <EditBatchDialog
+        open={!!editRow}
+        onClose={() => setEditRow(null)}
+        onSaved={load}
+        batch={editRow?.batch ?? null}
+        product={editRow?.product ?? null}
+      />
+
+      <AlertDialog open={!!deleteRow} onOpenChange={(o) => !o && setDeleteRow(null)}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف الدُفعة؟</AlertDialogTitle>
+            <AlertDialogDescription>
+              سيتم حذف الدُفعة <span className="font-mono font-semibold text-primary">{deleteRow?.batch.display_code}</span> نهائياً.
+              {deleteRow && Number(deleteRow.batch.quantity) - Number(deleteRow.batch.remaining_quantity) > 0 && (
+                <div className="mt-2 text-destructive">
+                  ⚠ هذه الدُفعة مستهلكة جزئياً ولا يمكن حذفها.
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive hover:bg-destructive/90">
+              {deleting && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
