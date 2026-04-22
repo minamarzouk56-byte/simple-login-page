@@ -71,6 +71,8 @@ export const AddStockDialog = ({ open, onClose, onSaved }: Props) => {
   const submit = async () => {
     if (!productId) { toast({ title: "اختر المنتج", variant: "destructive" }); return; }
     if (!warehouseId) { toast({ title: "اختر المخزن", variant: "destructive" }); return; }
+    if (!supplierId) { toast({ title: "اختر المورد", variant: "destructive" }); return; }
+    if (!accountId) { toast({ title: "اختر حساب من شجرة الحسابات", variant: "destructive" }); return; }
     const qty = Number(quantity);
     const cost = Number(unitCost);
     if (!(qty > 0)) { toast({ title: "أدخل كمية صحيحة", variant: "destructive" }); return; }
@@ -78,12 +80,14 @@ export const AddStockDialog = ({ open, onClose, onSaved }: Props) => {
 
     setSaving(true);
 
-    // ابحث عن batch موجود بنفس (product, warehouse, unit_cost)
+    // ابحث عن batch موجود بنفس (product, warehouse, supplier, account, unit_cost)
     const { data: existing, error: findErr } = await supabase
       .from("batches")
       .select("*")
       .eq("product_id", productId)
       .eq("warehouse_id", warehouseId)
+      .eq("supplier_id", supplierId)
+      .eq("account_id", accountId)
       .eq("unit_cost", cost)
       .maybeSingle();
 
@@ -116,6 +120,8 @@ export const AddStockDialog = ({ open, onClose, onSaved }: Props) => {
         .insert({
           product_id: productId,
           warehouse_id: warehouseId,
+          supplier_id: supplierId,
+          account_id: accountId,
           unit_cost: cost,
           quantity: qty,
           remaining_quantity: qty,
