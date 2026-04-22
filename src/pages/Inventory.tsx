@@ -317,6 +317,10 @@ const Inventory = () => {
         product={detailsRow?.product ?? null}
         warehouseName={detailsRow?.warehouse_name ?? ""}
         warehouseCode={detailsRow?.warehouse_code ?? ""}
+        supplierName={detailsRow?.supplier_name ?? ""}
+        supplierCode={detailsRow?.supplier_code ?? ""}
+        accountName={detailsRow?.account_name ?? ""}
+        accountCode={detailsRow?.account_code ?? ""}
       />
 
       <EditBatchDialog
