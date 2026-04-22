@@ -20,6 +20,9 @@ import InventoryItems from "./pages/InventoryItems";
 import InventoryNewRequest from "./pages/InventoryNewRequest";
 import InventoryRequests from "./pages/InventoryRequests";
 import InventoryMovements from "./pages/InventoryMovements";
+import InvoiceRequests from "./pages/InvoiceRequests";
+import SalesInvoices from "./pages/SalesInvoices";
+import PurchaseInvoices from "./pages/PurchaseInvoices";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +55,9 @@ const App = () => (
               <Route path="/inventory/new-request" element={<ProtectedRoute requirePermission="inventory.request"><InventoryNewRequest /></ProtectedRoute>} />
               <Route path="/inventory/requests" element={<ProtectedRoute requirePermission="inventory.view"><InventoryRequests /></ProtectedRoute>} />
               <Route path="/inventory/movements" element={<ProtectedRoute requirePermission="inventory.view"><InventoryMovements /></ProtectedRoute>} />
+              <Route path="/invoices/requests" element={<ProtectedRoute><InvoiceRequests /></ProtectedRoute>} />
+              <Route path="/invoices/sales" element={<ProtectedRoute><SalesInvoices /></ProtectedRoute>} />
+              <Route path="/invoices/purchases" element={<ProtectedRoute><PurchaseInvoices /></ProtectedRoute>} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
