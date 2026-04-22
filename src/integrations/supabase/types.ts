@@ -1024,6 +1024,9 @@ export type Database = {
         | "inventory.manage"
         | "inventory.request"
         | "inventory.approve"
+        | "invoices.view"
+        | "invoices.manage"
+        | "invoices.approve"
       custody_status: "active" | "settled" | "cancelled"
       inventory_request_status:
         | "pending"
@@ -1032,8 +1035,14 @@ export type Database = {
         | "fulfilled"
       journal_status: "posted"
       movement_type: "in" | "out" | "adjust" | "transfer"
-      permit_status: "pending" | "approved" | "rejected" | "cancelled"
-      permit_type: "issue" | "receive"
+      permit_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "cancelled"
+        | "on_hold"
+        | "invoiced"
+      permit_type: "issue" | "receive" | "sales_return" | "purchase_return"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1191,6 +1200,9 @@ export const Constants = {
         "inventory.manage",
         "inventory.request",
         "inventory.approve",
+        "invoices.view",
+        "invoices.manage",
+        "invoices.approve",
       ],
       custody_status: ["active", "settled", "cancelled"],
       inventory_request_status: [
@@ -1201,8 +1213,15 @@ export const Constants = {
       ],
       journal_status: ["posted"],
       movement_type: ["in", "out", "adjust", "transfer"],
-      permit_status: ["pending", "approved", "rejected", "cancelled"],
-      permit_type: ["issue", "receive"],
+      permit_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "cancelled",
+        "on_hold",
+        "invoiced",
+      ],
+      permit_type: ["issue", "receive", "sales_return", "purchase_return"],
     },
   },
 } as const
