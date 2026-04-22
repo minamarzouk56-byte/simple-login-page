@@ -241,6 +241,8 @@ const Inventory = () => {
                   <TableHead>كود الدُفعة</TableHead>
                   <TableHead>المنتج</TableHead>
                   <TableHead>المخزن</TableHead>
+                  <TableHead>المورد</TableHead>
+                  <TableHead>الحساب</TableHead>
                   <TableHead className="text-end">تكلفة الوحدة</TableHead>
                   <TableHead className="text-end">الكمية</TableHead>
                   <TableHead className="text-end">قيمة الدُفعة</TableHead>
@@ -262,6 +264,14 @@ const Inventory = () => {
                     <TableCell>
                       <div className="font-medium">{r.warehouse_name}</div>
                       <div className="text-xs text-muted-foreground font-mono">{r.warehouse_code}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">{r.supplier_name}</div>
+                      <div className="text-xs text-muted-foreground font-mono">{r.supplier_code}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">{r.account_name}</div>
+                      <div className="text-xs text-muted-foreground font-mono">{r.account_code}</div>
                     </TableCell>
                     <TableCell className="text-end tabular-nums">{fmtNumber(Number(r.batch.unit_cost))}</TableCell>
                     <TableCell className={`text-end tabular-nums font-bold ${r.low ? "text-destructive" : ""}`}>
