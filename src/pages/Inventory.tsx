@@ -133,10 +133,12 @@ const Inventory = () => {
         <Card>
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <div className="text-xs text-muted-foreground">دُفعات بمخزون منخفض</div>
+              <div className="text-xs text-muted-foreground">منتجات بمخزون منخفض</div>
               <div className="text-2xl font-bold tabular-nums mt-1 text-destructive">{stats.low}</div>
             </div>
             <AlertTriangle className="h-8 w-8 text-destructive/60" />
+          </CardContent>
+        </Card>
           </CardContent>
         </Card>
         <Card>
