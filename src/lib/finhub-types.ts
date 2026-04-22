@@ -162,6 +162,10 @@ export const PERMISSION_LABELS_AR: Record<AppPermission, string> = {
   "invoices.view": "عرض الطلبات والفواتير",
   "invoices.manage": "إدارة الطلبات والفواتير",
   "invoices.approve": "تأكيد الطلبات النهائية",
+  "stock_requests.create": "إنشاء طلبات إذن المخزون",
+  "stock_requests.view_own": "عرض طلباتي المرسلة",
+  "stock_requests.manage": "إدارة كل طلبات المخزون",
+  "stock_requests.settle": "تسوية طلبات المخزون",
 };
 
 // =============== Inventory / Products / Batches / Orders ===============
