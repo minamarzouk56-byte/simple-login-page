@@ -225,6 +225,7 @@ const Inventory = () => {
                   <TableHead className="text-end">تكلفة الوحدة</TableHead>
                   <TableHead className="text-end">الكمية</TableHead>
                   <TableHead className="text-end">قيمة الدُفعة</TableHead>
+                  <TableHead className="w-[60px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -245,10 +246,31 @@ const Inventory = () => {
                     </TableCell>
                     <TableCell className="text-end tabular-nums">{fmtNumber(Number(r.batch.unit_cost))}</TableCell>
                     <TableCell className={`text-end tabular-nums font-bold ${r.low ? "text-destructive" : ""}`}>
-                      {fmtNumber(Number(r.batch.remaining_quantity))} {r.product.unit}
+                      {fmtQty(Number(r.batch.remaining_quantity))} {r.product.unit}
                       {r.low && <AlertTriangle className="inline h-3.5 w-3.5 mr-1" />}
                     </TableCell>
                     <TableCell className="text-end tabular-nums font-medium">{fmtNumber(r.value)}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem onClick={() => setDetailsRow(r)}>
+                            <Eye className="h-4 w-4 ml-2" /> عرض التفاصيل
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setEditRow(r)}>
+                            <Pencil className="h-4 w-4 ml-2" /> تعديل
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => setDeleteRow(r)} className="text-destructive focus:text-destructive">
+                            <Trash2 className="h-4 w-4 ml-2" /> حذف
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
