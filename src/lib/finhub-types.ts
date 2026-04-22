@@ -27,7 +27,10 @@ export type AppPermission =
   | "inventory.view"
   | "inventory.manage"
   | "inventory.request"
-  | "inventory.approve";
+  | "inventory.approve"
+  | "invoices.view"
+  | "invoices.manage"
+  | "invoices.approve";
 
 export interface Profile {
   id: string;
@@ -152,17 +155,25 @@ export const PERMISSION_LABELS_AR: Record<AppPermission, string> = {
   "inventory.manage": "إدارة الأصناف والمخازن والفئات",
   "inventory.request": "طلب أذونات المخزون",
   "inventory.approve": "الموافقة على أذونات المخزون",
+  "invoices.view": "عرض الفواتير",
+  "invoices.manage": "إدارة طلبات الفواتير",
+  "invoices.approve": "تأكيد الفواتير",
 };
 
 // =============== Inventory ===============
 
-export type PermitType = "issue" | "receive";
-export type PermitStatus = "pending" | "approved" | "rejected" | "cancelled";
+export type PermitType = "issue" | "receive" | "sales_return" | "purchase_return";
+export type PermitStatus = "pending" | "approved" | "rejected" | "cancelled" | "on_hold" | "invoiced";
 export type MovementType = "in" | "out" | "adjust" | "transfer";
+export type InvoiceType = "sale" | "purchase" | "sale_return" | "purchase_return";
+export type InvoiceRequestStatus = "pending" | "confirmed" | "rejected" | "on_hold";
+export type InvoiceStatus = "confirmed" | "cancelled";
 
 export const PERMIT_TYPE_LABELS_AR: Record<PermitType, string> = {
   issue: "إذن صرف",
   receive: "إذن وارد",
+  sales_return: "إذن إرجاع مبيعات",
+  purchase_return: "إذن إرجاع مشتريات",
 };
 
 export const PERMIT_STATUS_LABELS_AR: Record<PermitStatus, string> = {
@@ -170,6 +181,27 @@ export const PERMIT_STATUS_LABELS_AR: Record<PermitStatus, string> = {
   approved: "تمت الموافقة",
   rejected: "مرفوض",
   cancelled: "ملغي",
+  on_hold: "معلق",
+  invoiced: "تم تحويله لفاتورة",
+};
+
+export const INVOICE_TYPE_LABELS_AR: Record<InvoiceType, string> = {
+  sale: "فاتورة بيع",
+  purchase: "فاتورة شراء",
+  sale_return: "إرجاع مبيعات",
+  purchase_return: "إرجاع مشتريات",
+};
+
+export const INVOICE_REQUEST_STATUS_LABELS_AR: Record<InvoiceRequestStatus, string> = {
+  pending: "في الانتظار",
+  confirmed: "تم التأكيد",
+  rejected: "مرفوض",
+  on_hold: "معلق",
+};
+
+export const INVOICE_STATUS_LABELS_AR: Record<InvoiceStatus, string> = {
+  confirmed: "مؤكدة",
+  cancelled: "ملغاة",
 };
 
 export const MOVEMENT_TYPE_LABELS_AR: Record<MovementType, string> = {
@@ -230,6 +262,8 @@ export interface InventoryPermit {
   permit_date: string;
   warehouse_id: string;
   counterparty_account_id: string | null;
+  customer_id: string | null;
+  supplier_id: string | null;
   description: string | null;
   notes: string | null;
   status: PermitStatus;
