@@ -196,8 +196,8 @@ const InventoryRequests = () => {
                             <span className="inline-flex items-center gap-1.5 text-sm">
                               {p.permit_type === "issue" && <ArrowUpFromLine className="h-3.5 w-3.5 text-destructive" />}
                               {p.permit_type === "receive" && <ArrowDownToLine className="h-3.5 w-3.5 text-primary" />}
-                              {p.permit_type === "sales_return" && <Undo2 className="h-3.5 w-3.5 text-amber-600" />}
-                              {p.permit_type === "purchase_return" && <Redo2 className="h-3.5 w-3.5 text-violet-600" />}
+                              {p.permit_type === "sales_return" && <Undo2 className="h-3.5 w-3.5 text-muted-foreground" />}
+                              {p.permit_type === "purchase_return" && <Redo2 className="h-3.5 w-3.5 text-muted-foreground" />}
                               {PERMIT_TYPE_LABELS_AR[p.permit_type]}
                             </span>
                           </TableCell>
