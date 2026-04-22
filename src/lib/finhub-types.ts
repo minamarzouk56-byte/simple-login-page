@@ -312,7 +312,53 @@ export interface StockMovement {
   created_by: string | null;
 }
 
-export const ACCOUNT_TYPE_LABELS_AR: Record<AccountType, string> = {
+// =============== Stock Requests ===============
+
+export type StockRequestType = "add" | "issue" | "sale_return" | "purchase_return";
+export type StockRequestStatus = "pending" | "settled" | "rejected" | "cancelled";
+
+export const STOCK_REQUEST_TYPE_LABELS_AR: Record<StockRequestType, string> = {
+  add: "طلب إضافة مخزون",
+  issue: "طلب صرف مخزون",
+  sale_return: "طلب إرجاع مبيعات",
+  purchase_return: "طلب إرجاع مشتريات",
+};
+
+export const STOCK_REQUEST_STATUS_LABELS_AR: Record<StockRequestStatus, string> = {
+  pending: "قيد المراجعة",
+  settled: "تمت التسوية",
+  rejected: "مرفوض",
+  cancelled: "ملغي",
+};
+
+export interface StockRequest {
+  id: string;
+  request_number: string;
+  request_type: StockRequestType;
+  request_date: string;
+  status: StockRequestStatus;
+  customer_id: string | null;
+  supplier_id: string | null;
+  notes: string | null;
+  review_notes: string | null;
+  created_by: string;
+  settled_by: string | null;
+  settled_at: string | null;
+  related_order_id: string | null;
+  journal_entry_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StockRequestLine {
+  id: string;
+  request_id: string;
+  product_id: string;
+  quantity: number;
+  unit_price: number | null;
+  notes: string | null;
+  line_order: number;
+}
   asset: "أصول",
   liability: "خصوم",
   equity: "حقوق ملكية",
