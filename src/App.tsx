@@ -18,6 +18,7 @@ import Reports from "./pages/Reports";
 import Users from "./pages/Users";
 import InventoryItems from "./pages/InventoryItems";
 import InventoryNewRequest from "./pages/InventoryNewRequest";
+import InventoryNewRequestForm from "./pages/InventoryNewRequestForm";
 import InventoryRequests from "./pages/InventoryRequests";
 import InventoryMovements from "./pages/InventoryMovements";
 import InvoiceRequests from "./pages/InvoiceRequests";
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="/users" element={<ProtectedRoute requirePermission="users.manage"><Users /></ProtectedRoute>} />
               <Route path="/inventory/items" element={<ProtectedRoute requirePermission="inventory.view"><InventoryItems /></ProtectedRoute>} />
               <Route path="/inventory/new-request" element={<ProtectedRoute requirePermission="inventory.request"><InventoryNewRequest /></ProtectedRoute>} />
+              <Route path="/inventory/new-request/:type" element={<ProtectedRoute requirePermission="inventory.request"><InventoryNewRequestForm /></ProtectedRoute>} />
               <Route path="/inventory/requests" element={<ProtectedRoute requirePermission="inventory.view"><InventoryRequests /></ProtectedRoute>} />
               <Route path="/inventory/movements" element={<ProtectedRoute requirePermission="inventory.view"><InventoryMovements /></ProtectedRoute>} />
               <Route path="/invoices/requests" element={<ProtectedRoute><InvoiceRequests /></ProtectedRoute>} />
