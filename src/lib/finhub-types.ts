@@ -30,7 +30,11 @@ export type AppPermission =
   | "inventory.approve"
   | "invoices.view"
   | "invoices.manage"
-  | "invoices.approve";
+  | "invoices.approve"
+  | "stock_requests.create"
+  | "stock_requests.view_own"
+  | "stock_requests.manage"
+  | "stock_requests.settle";
 
 export interface Profile {
   id: string;
