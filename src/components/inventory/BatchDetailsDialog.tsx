@@ -18,9 +18,18 @@ interface Props {
   product: Product | null;
   warehouseName: string;
   warehouseCode: string;
+  supplierName?: string;
+  supplierCode?: string;
+  accountName?: string;
+  accountCode?: string;
 }
 
-export const BatchDetailsDialog = ({ open, onClose, batch, product, warehouseName, warehouseCode }: Props) => {
+export const BatchDetailsDialog = ({
+  open, onClose, batch, product,
+  warehouseName, warehouseCode,
+  supplierName, supplierCode,
+  accountName, accountCode,
+}: Props) => {
   const [loading, setLoading] = useState(false);
   const [movements, setMovements] = useState<StockMovement[]>([]);
 
@@ -59,6 +68,8 @@ export const BatchDetailsDialog = ({ open, onClose, batch, product, warehouseNam
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
           <Field label="المنتج" value={`${product.name} (${product.code})`} />
           <Field label="المخزن" value={`${warehouseName} (${warehouseCode})`} />
+          <Field label="المورد" value={supplierName ? `${supplierName} (${supplierCode})` : "—"} />
+          <Field label="الحساب" value={accountName ? `${accountName} (${accountCode})` : "—"} />
           <Field label="الوحدة" value={product.unit} />
           <Field label="تكلفة الوحدة" value={fmtNumber(Number(batch.unit_cost))} />
           <Field label="الكمية الأصلية" value={`${fmtQty(Number(batch.quantity))} ${product.unit}`} />

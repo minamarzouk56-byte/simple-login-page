@@ -16,7 +16,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Boxes, Loader2, Search, X, AlertTriangle, Wallet, Layers, PackagePlus, MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
-import type { Product, Warehouse, Batch } from "@/lib/finhub-types";
+import type { Product, Warehouse, Batch, Supplier, Account } from "@/lib/finhub-types";
 import { fmtNumber, fmtQty } from "@/lib/inventory-utils";
 import { AddStockDialog } from "@/components/inventory/AddStockDialog";
 import { BatchDetailsDialog } from "@/components/inventory/BatchDetailsDialog";
@@ -27,6 +27,10 @@ interface BatchRow {
   product: Product;
   warehouse_name: string;
   warehouse_code: string;
+  supplier_name: string;
+  supplier_code: string;
+  account_name: string;
+  account_code: string;
   value: number;
   low: boolean;
 }
@@ -71,16 +75,22 @@ const Inventory = () => {
 
   const load = async () => {
     setLoading(true);
-    const [p, w, b] = await Promise.all([
+    const [p, w, b, s, a] = await Promise.all([
       supabase.from("items").select("*"),
       supabase.from("warehouses").select("*"),
       supabase.from("batches").select("*").gt("remaining_quantity", 0).order("created_at", { ascending: true }),
+      supabase.from("suppliers").select("*"),
+      supabase.from("accounts").select("*"),
     ]);
     const products = (p.data ?? []) as Product[];
     const warehouses = (w.data ?? []) as Warehouse[];
     const batches = (b.data ?? []) as Batch[];
+    const suppliers = (s.data ?? []) as Supplier[];
+    const accounts = (a.data ?? []) as Account[];
     const prodMap = new Map(products.map((x) => [x.id, x]));
     const whMap = new Map(warehouses.map((x) => [x.id, x]));
+    const supMap = new Map(suppliers.map((x) => [x.id, x]));
+    const accMap = new Map(accounts.map((x) => [x.id, x]));
 
     // إجمالي الكميات المتاحة لكل منتج (من كل الباتشات)
     const productTotals = new Map<string, number>();
@@ -97,6 +107,8 @@ const Inventory = () => {
       const product = prodMap.get(bt.product_id);
       if (!product) return acc;
       const wh = whMap.get(bt.warehouse_id);
+      const sup = bt.supplier_id ? supMap.get(bt.supplier_id) : null;
+      const account = bt.account_id ? accMap.get(bt.account_id) : null;
       const qty = Number(bt.remaining_quantity);
       const productTotal = productTotals.get(product.id) ?? 0;
       acc.push({
@@ -104,6 +116,10 @@ const Inventory = () => {
         product,
         warehouse_name: wh?.name ?? "—",
         warehouse_code: wh?.code ?? "—",
+        supplier_name: sup?.name ?? "—",
+        supplier_code: sup?.code ?? "—",
+        account_name: account?.name ?? "—",
+        account_code: account?.code ?? "—",
         value: qty * Number(bt.unit_cost),
         low: product.min_stock > 0 && productTotal <= product.min_stock,
       });
@@ -120,7 +136,10 @@ const Inventory = () => {
     const q = search.trim().toLowerCase();
     if (!q) return rows;
     return rows.filter((r) =>
-      [r.product.code, r.product.name, r.batch.display_code ?? "", r.warehouse_name, r.warehouse_code]
+      [r.product.code, r.product.name, r.batch.display_code ?? "",
+       r.warehouse_name, r.warehouse_code,
+       r.supplier_name, r.supplier_code,
+       r.account_name, r.account_code]
         .join(" ").toLowerCase().includes(q),
     );
   }, [rows, search]);
@@ -222,6 +241,8 @@ const Inventory = () => {
                   <TableHead>كود الدُفعة</TableHead>
                   <TableHead>المنتج</TableHead>
                   <TableHead>المخزن</TableHead>
+                  <TableHead>المورد</TableHead>
+                  <TableHead>الحساب</TableHead>
                   <TableHead className="text-end">تكلفة الوحدة</TableHead>
                   <TableHead className="text-end">الكمية</TableHead>
                   <TableHead className="text-end">قيمة الدُفعة</TableHead>
@@ -243,6 +264,14 @@ const Inventory = () => {
                     <TableCell>
                       <div className="font-medium">{r.warehouse_name}</div>
                       <div className="text-xs text-muted-foreground font-mono">{r.warehouse_code}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">{r.supplier_name}</div>
+                      <div className="text-xs text-muted-foreground font-mono">{r.supplier_code}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">{r.account_name}</div>
+                      <div className="text-xs text-muted-foreground font-mono">{r.account_code}</div>
                     </TableCell>
                     <TableCell className="text-end tabular-nums">{fmtNumber(Number(r.batch.unit_cost))}</TableCell>
                     <TableCell className={`text-end tabular-nums font-bold ${r.low ? "text-destructive" : ""}`}>
@@ -288,6 +317,10 @@ const Inventory = () => {
         product={detailsRow?.product ?? null}
         warehouseName={detailsRow?.warehouse_name ?? ""}
         warehouseCode={detailsRow?.warehouse_code ?? ""}
+        supplierName={detailsRow?.supplier_name ?? ""}
+        supplierCode={detailsRow?.supplier_code ?? ""}
+        accountName={detailsRow?.account_name ?? ""}
+        accountCode={detailsRow?.account_code ?? ""}
       />
 
       <EditBatchDialog

@@ -121,6 +121,7 @@ export type Database = {
       }
       batches: {
         Row: {
+          account_id: string | null
           created_at: string
           created_by: string | null
           display_code: string | null
@@ -129,11 +130,13 @@ export type Database = {
           quantity: number
           remaining_quantity: number
           source_order_id: string | null
+          supplier_id: string | null
           unit_cost: number
           updated_at: string
           warehouse_id: string
         }
         Insert: {
+          account_id?: string | null
           created_at?: string
           created_by?: string | null
           display_code?: string | null
@@ -142,11 +145,13 @@ export type Database = {
           quantity?: number
           remaining_quantity?: number
           source_order_id?: string | null
+          supplier_id?: string | null
           unit_cost?: number
           updated_at?: string
           warehouse_id: string
         }
         Update: {
+          account_id?: string | null
           created_at?: string
           created_by?: string | null
           display_code?: string | null
@@ -155,16 +160,31 @@ export type Database = {
           quantity?: number
           remaining_quantity?: number
           source_order_id?: string | null
+          supplier_id?: string | null
           unit_cost?: number
           updated_at?: string
           warehouse_id?: string
         }
         Relationships: [
           {
+            foreignKeyName: "batches_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "batches_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "batches_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
           {

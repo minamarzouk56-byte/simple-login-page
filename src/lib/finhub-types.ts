@@ -233,6 +233,8 @@ export interface Batch {
   remaining_quantity: number;
   display_code: string | null;
   source_order_id: string | null;
+  supplier_id: string | null;
+  account_id: string | null;
   created_at: string;
   updated_at: string;
 }
