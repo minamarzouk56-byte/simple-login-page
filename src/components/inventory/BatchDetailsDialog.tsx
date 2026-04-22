@@ -116,6 +116,3 @@ const Field = ({ label, value, highlight }: { label: string; value: string; high
     <div className={`mt-1 font-medium tabular-nums ${highlight ? "text-primary" : ""}`}>{value}</div>
   </div>
 );
-
-// avoid unused import warning if utils not extended
-export const _silence = MOVEMENT_TYPE_LABELS_AR_FALLBACK;
