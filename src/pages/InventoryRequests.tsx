@@ -16,8 +16,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
-  ClipboardCheck, Loader2, Search, X, Eye, Check, XCircle,
-  ArrowUpFromLine, ArrowDownToLine,
+  ClipboardCheck, Loader2, Search, X, Eye, Check, XCircle, PauseCircle, FileText,
+  ArrowUpFromLine, ArrowDownToLine, Undo2, Redo2,
 } from "lucide-react";
 import type {
   InventoryPermit, InventoryPermitLine, InventoryItem, Warehouse, PermitStatus,
@@ -194,9 +194,10 @@ const InventoryRequests = () => {
                           <TableCell className="text-sm">{fmtDate(p.permit_date)}</TableCell>
                           <TableCell>
                             <span className="inline-flex items-center gap-1.5 text-sm">
-                              {p.permit_type === "issue"
-                                ? <ArrowUpFromLine className="h-3.5 w-3.5 text-destructive" />
-                                : <ArrowDownToLine className="h-3.5 w-3.5 text-primary" />}
+                              {p.permit_type === "issue" && <ArrowUpFromLine className="h-3.5 w-3.5 text-destructive" />}
+                              {p.permit_type === "receive" && <ArrowDownToLine className="h-3.5 w-3.5 text-primary" />}
+                              {p.permit_type === "sales_return" && <Undo2 className="h-3.5 w-3.5 text-muted-foreground" />}
+                              {p.permit_type === "purchase_return" && <Redo2 className="h-3.5 w-3.5 text-muted-foreground" />}
                               {PERMIT_TYPE_LABELS_AR[p.permit_type]}
                             </span>
                           </TableCell>
