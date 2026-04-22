@@ -16,14 +16,9 @@ import Customers from "./pages/Customers";
 import Suppliers from "./pages/Suppliers";
 import Reports from "./pages/Reports";
 import Users from "./pages/Users";
-import InventoryItems from "./pages/InventoryItems";
-import InventoryNewRequest from "./pages/InventoryNewRequest";
-import InventoryNewRequestForm from "./pages/InventoryNewRequestForm";
-import InventoryRequests from "./pages/InventoryRequests";
+import Products from "./pages/Products";
+import Inventory from "./pages/Inventory";
 import InventoryMovements from "./pages/InventoryMovements";
-import InvoiceRequests from "./pages/InvoiceRequests";
-import SalesInvoices from "./pages/SalesInvoices";
-import PurchaseInvoices from "./pages/PurchaseInvoices";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,14 +47,9 @@ const App = () => (
               <Route path="/suppliers" element={<ProtectedRoute requirePermission="suppliers.view"><Suppliers /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute requirePermission="reports.view"><Reports /></ProtectedRoute>} />
               <Route path="/users" element={<ProtectedRoute requirePermission="users.manage"><Users /></ProtectedRoute>} />
-              <Route path="/inventory/items" element={<ProtectedRoute requirePermission="inventory.view"><InventoryItems /></ProtectedRoute>} />
-              <Route path="/inventory/new-request" element={<ProtectedRoute requirePermission="inventory.request"><InventoryNewRequest /></ProtectedRoute>} />
-              <Route path="/inventory/new-request/:type" element={<ProtectedRoute requirePermission="inventory.request"><InventoryNewRequestForm /></ProtectedRoute>} />
-              <Route path="/inventory/requests" element={<ProtectedRoute requirePermission="inventory.view"><InventoryRequests /></ProtectedRoute>} />
+              <Route path="/products" element={<ProtectedRoute requirePermission="inventory.view"><Products /></ProtectedRoute>} />
+              <Route path="/inventory" element={<ProtectedRoute requirePermission="inventory.view"><Inventory /></ProtectedRoute>} />
               <Route path="/inventory/movements" element={<ProtectedRoute requirePermission="inventory.view"><InventoryMovements /></ProtectedRoute>} />
-              <Route path="/invoices/requests" element={<ProtectedRoute requirePermission="invoices.view"><InvoiceRequests /></ProtectedRoute>} />
-              <Route path="/invoices/sales" element={<ProtectedRoute requirePermission="invoices.view"><SalesInvoices /></ProtectedRoute>} />
-              <Route path="/invoices/purchases" element={<ProtectedRoute requirePermission="invoices.view"><PurchaseInvoices /></ProtectedRoute>} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -307,7 +307,7 @@ const Products = () => {
         onSaved={load} editing={editingWh} />
 
       <CategoryFormDialog open={catOpen} onClose={() => setCatOpen(false)}
-        onSaved={load} editing={editingCat} />
+        onSaved={load} editing={editingCat} categories={categories} />
 
       <AlertDialog open={!!deletingProduct} onOpenChange={(o) => !o && setDeletingProduct(null)}>
         <AlertDialogContent dir="rtl">
