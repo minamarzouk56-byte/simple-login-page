@@ -33,10 +33,41 @@ interface BatchRow {
 
 const Inventory = () => {
   useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<BatchRow[]>([]);
   const [search, setSearch] = useState("");
   const [addOpen, setAddOpen] = useState(false);
+  const [detailsRow, setDetailsRow] = useState<BatchRow | null>(null);
+  const [editRow, setEditRow] = useState<BatchRow | null>(null);
+  const [deleteRow, setDeleteRow] = useState<BatchRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!deleteRow) return;
+    const consumed = Number(deleteRow.batch.quantity) - Number(deleteRow.batch.remaining_quantity);
+    if (consumed > 0) {
+      toast({
+        title: "لا يمكن حذف الدُفعة",
+        description: `تم استهلاك ${consumed} ${deleteRow.product.unit} من هذه الدُفعة في عمليات سابقة`,
+        variant: "destructive",
+      });
+      setDeleteRow(null);
+      return;
+    }
+    setDeleting(true);
+    // امسح حركات المخزون المرتبطة (الإضافة اليدوية فقط) ثم الدُفعة
+    await supabase.from("stock_movements").delete().eq("batch_id", deleteRow.batch.id);
+    const { error } = await supabase.from("batches").delete().eq("id", deleteRow.batch.id);
+    setDeleting(false);
+    if (error) {
+      toast({ title: "فشل الحذف", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "تم حذف الدُفعة" });
+    setDeleteRow(null);
+    load();
+  };
 
   const load = async () => {
     setLoading(true);
