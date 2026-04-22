@@ -68,6 +68,8 @@ export const BatchDetailsDialog = ({
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
           <Field label="المنتج" value={`${product.name} (${product.code})`} />
           <Field label="المخزن" value={`${warehouseName} (${warehouseCode})`} />
+          <Field label="المورد" value={supplierName ? `${supplierName} (${supplierCode})` : "—"} />
+          <Field label="الحساب" value={accountName ? `${accountName} (${accountCode})` : "—"} />
           <Field label="الوحدة" value={product.unit} />
           <Field label="تكلفة الوحدة" value={fmtNumber(Number(batch.unit_cost))} />
           <Field label="الكمية الأصلية" value={`${fmtQty(Number(batch.quantity))} ${product.unit}`} />
