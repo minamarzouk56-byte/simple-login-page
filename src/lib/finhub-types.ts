@@ -1,4 +1,4 @@
-// Domain types for FinHub. These mirror the SQL schema in `supabase/schema.sql`.
+// Domain types for FinHub. Matches the SQL schema (batches/orders system).
 
 export type AccountType = "asset" | "liability" | "equity" | "revenue" | "expense";
 export type JournalStatus = "posted";
@@ -153,55 +153,34 @@ export const PERMISSION_LABELS_AR: Record<AppPermission, string> = {
   "settings.manage": "إدارة الإعدادات",
   "inventory.view": "عرض المخزون والحركات",
   "inventory.manage": "إدارة الأصناف والمخازن والفئات",
-  "inventory.request": "طلب أذونات المخزون",
-  "inventory.approve": "الموافقة على أذونات المخزون",
-  "invoices.view": "عرض الفواتير",
-  "invoices.manage": "إدارة طلبات الفواتير",
-  "invoices.approve": "تأكيد الفواتير",
+  "inventory.request": "إنشاء طلبات الشراء/البيع",
+  "inventory.approve": "اعتماد طلبات الشراء وتخصيص الدُفعات",
+  "invoices.view": "عرض الطلبات والفواتير",
+  "invoices.manage": "إدارة الطلبات والفواتير",
+  "invoices.approve": "تأكيد الطلبات النهائية",
 };
 
-// =============== Inventory ===============
+// =============== Inventory / Products / Batches / Orders ===============
 
-export type PermitType = "issue" | "receive" | "sales_return" | "purchase_return";
-export type PermitStatus = "pending" | "approved" | "rejected" | "cancelled" | "on_hold" | "invoiced";
 export type MovementType = "in" | "out" | "adjust" | "transfer";
-export type InvoiceType = "sale" | "purchase" | "sale_return" | "purchase_return";
-export type InvoiceRequestStatus = "pending" | "confirmed" | "rejected" | "on_hold";
-export type InvoiceStatus = "confirmed" | "cancelled";
+export type OrderType = "purchase" | "sale" | "sale_return" | "purchase_return";
+export type OrderStatus = "draft" | "pending" | "approved" | "allocated" | "completed" | "rejected" | "cancelled";
 
-export const PERMIT_TYPE_LABELS_AR: Record<PermitType, string> = {
-  issue: "إذن صرف",
-  receive: "إذن وارد",
-  sales_return: "إذن إرجاع مبيعات",
-  purchase_return: "إذن إرجاع مشتريات",
-};
-
-export const PERMIT_STATUS_LABELS_AR: Record<PermitStatus, string> = {
-  pending: "في الانتظار",
-  approved: "تمت الموافقة",
-  rejected: "مرفوض",
-  cancelled: "ملغي",
-  on_hold: "معلق",
-  invoiced: "تم تحويله لفاتورة",
-};
-
-export const INVOICE_TYPE_LABELS_AR: Record<InvoiceType, string> = {
-  sale: "فاتورة بيع",
-  purchase: "فاتورة شراء",
+export const ORDER_TYPE_LABELS_AR: Record<OrderType, string> = {
+  purchase: "طلب شراء",
+  sale: "طلب بيع",
   sale_return: "إرجاع مبيعات",
   purchase_return: "إرجاع مشتريات",
 };
 
-export const INVOICE_REQUEST_STATUS_LABELS_AR: Record<InvoiceRequestStatus, string> = {
-  pending: "في الانتظار",
-  confirmed: "تم التأكيد",
+export const ORDER_STATUS_LABELS_AR: Record<OrderStatus, string> = {
+  draft: "مسودة",
+  pending: "قيد المراجعة",
+  approved: "معتمد",
+  allocated: "مخصص الدُفعات",
+  completed: "مكتمل",
   rejected: "مرفوض",
-  on_hold: "معلق",
-};
-
-export const INVOICE_STATUS_LABELS_AR: Record<InvoiceStatus, string> = {
-  confirmed: "مؤكدة",
-  cancelled: "ملغاة",
+  cancelled: "ملغي",
 };
 
 export const MOVEMENT_TYPE_LABELS_AR: Record<MovementType, string> = {
@@ -230,125 +209,97 @@ export interface ItemCategory {
   is_active: boolean;
 }
 
-export interface InventoryItem {
+/** Master product. Cost & warehouse live on Batches, not here. */
+export interface Product {
   id: string;
   code: string;
   name: string;
   unit: string;
   category_id: string | null;
-  default_warehouse_id: string | null;
-  cost_price: number;
   sale_price: number;
   min_stock: number;
-  account_id: string | null;
   description: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
 }
 
-export interface ItemStock {
+export interface Batch {
   id: string;
-  item_id: string;
+  product_id: string;
   warehouse_id: string;
+  unit_cost: number;
   quantity: number;
+  remaining_quantity: number;
+  display_code: string | null;
+  source_order_id: string | null;
+  created_at: string;
   updated_at: string;
 }
 
-export interface InventoryPermit {
+export interface Order {
   id: string;
-  permit_number: string;
-  permit_type: PermitType;
-  permit_date: string;
-  warehouse_id: string;
-  counterparty_account_id: string | null;
+  order_number: string;
+  order_type: OrderType;
+  order_date: string;
+  status: OrderStatus;
   customer_id: string | null;
   supplier_id: string | null;
-  description: string | null;
-  notes: string | null;
-  status: PermitStatus;
+  counterparty_account_id: string | null;
+  warehouse_id: string | null;
+  subtotal: number;
+  tax_percent: number;
+  tax_amount: number;
+  discount_amount: number;
   total_amount: number;
-  requested_by: string;
-  reviewed_by: string | null;
-  reviewed_at: string | null;
+  notes: string | null;
   review_notes: string | null;
+  created_by: string;
+  approved_by: string | null;
+  approved_at: string | null;
+  allocated_by: string | null;
+  allocated_at: string | null;
+  completed_by: string | null;
+  completed_at: string | null;
   journal_entry_id: string | null;
   created_at: string;
   updated_at: string;
 }
 
-export interface InventoryPermitLine {
+export interface OrderLine {
   id: string;
-  permit_id: string;
-  item_id: string;
+  order_id: string;
+  product_id: string;
   quantity: number;
   unit_price: number;
+  unit_cost: number;
   line_total: number;
+  allocated_quantity: number;
   notes: string | null;
   line_order: number;
 }
 
+export interface OrderLineBatch {
+  id: string;
+  order_line_id: string;
+  batch_id: string;
+  quantity: number;
+  unit_cost: number;
+  created_at: string;
+}
+
 export interface StockMovement {
   id: string;
-  item_id: string;
+  product_id: string;
   warehouse_id: string;
+  batch_id: string | null;
   movement_type: MovementType;
   quantity: number;
-  unit_price: number;
-  permit_id: string | null;
+  unit_cost: number;
+  order_id: string | null;
   description: string | null;
   movement_date: string;
   created_by: string | null;
-}
-
-export interface InvoiceRequest {
-  id: string;
-  request_number: string;
-  invoice_type: InvoiceType;
-  request_date: string;
-  permit_id: string | null;
-  warehouse_id: string;
-  customer_id: string | null;
-  supplier_id: string | null;
-  counterparty_account_id: string;
-  subtotal: number;
-  tax_percent: number;
-  tax_amount: number;
-  discount_amount: number;
-  total_amount: number;
-  status: InvoiceRequestStatus;
-  notes: string | null;
-  review_notes: string | null;
-  invoice_id: string | null;
-  created_by: string;
-  reviewed_by: string | null;
-  reviewed_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Invoice {
-  id: string;
-  invoice_number: string;
-  invoice_type: InvoiceType;
-  invoice_date: string;
-  request_id: string | null;
-  permit_id: string | null;
-  warehouse_id: string;
-  customer_id: string | null;
-  supplier_id: string | null;
-  counterparty_account_id: string;
-  subtotal: number;
-  tax_percent: number;
-  tax_amount: number;
-  discount_amount: number;
-  total_amount: number;
-  status: InvoiceStatus;
-  notes: string | null;
-  journal_entry_id: string | null;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export const ACCOUNT_TYPE_LABELS_AR: Record<AccountType, string> = {
