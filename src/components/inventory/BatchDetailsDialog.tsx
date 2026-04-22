@@ -18,9 +18,18 @@ interface Props {
   product: Product | null;
   warehouseName: string;
   warehouseCode: string;
+  supplierName?: string;
+  supplierCode?: string;
+  accountName?: string;
+  accountCode?: string;
 }
 
-export const BatchDetailsDialog = ({ open, onClose, batch, product, warehouseName, warehouseCode }: Props) => {
+export const BatchDetailsDialog = ({
+  open, onClose, batch, product,
+  warehouseName, warehouseCode,
+  supplierName, supplierCode,
+  accountName, accountCode,
+}: Props) => {
   const [loading, setLoading] = useState(false);
   const [movements, setMovements] = useState<StockMovement[]>([]);
 
