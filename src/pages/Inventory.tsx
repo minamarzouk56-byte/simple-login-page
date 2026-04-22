@@ -280,6 +280,46 @@ const Inventory = () => {
       </Card>
 
       <AddStockDialog open={addOpen} onClose={() => setAddOpen(false)} onSaved={load} />
+
+      <BatchDetailsDialog
+        open={!!detailsRow}
+        onClose={() => setDetailsRow(null)}
+        batch={detailsRow?.batch ?? null}
+        product={detailsRow?.product ?? null}
+        warehouseName={detailsRow?.warehouse_name ?? ""}
+        warehouseCode={detailsRow?.warehouse_code ?? ""}
+      />
+
+      <EditBatchDialog
+        open={!!editRow}
+        onClose={() => setEditRow(null)}
+        onSaved={load}
+        batch={editRow?.batch ?? null}
+        product={editRow?.product ?? null}
+      />
+
+      <AlertDialog open={!!deleteRow} onOpenChange={(o) => !o && setDeleteRow(null)}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف الدُفعة؟</AlertDialogTitle>
+            <AlertDialogDescription>
+              سيتم حذف الدُفعة <span className="font-mono font-semibold text-primary">{deleteRow?.batch.display_code}</span> نهائياً.
+              {deleteRow && Number(deleteRow.batch.quantity) - Number(deleteRow.batch.remaining_quantity) > 0 && (
+                <div className="mt-2 text-destructive">
+                  ⚠ هذه الدُفعة مستهلكة جزئياً ولا يمكن حذفها.
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive hover:bg-destructive/90">
+              {deleting && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
