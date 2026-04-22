@@ -359,6 +359,8 @@ export interface StockRequestLine {
   notes: string | null;
   line_order: number;
 }
+
+export const ACCOUNT_TYPE_LABELS_AR: Record<AccountType, string> = {
   asset: "أصول",
   liability: "خصوم",
   equity: "حقوق ملكية",
