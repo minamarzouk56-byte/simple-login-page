@@ -136,7 +136,10 @@ const Inventory = () => {
     const q = search.trim().toLowerCase();
     if (!q) return rows;
     return rows.filter((r) =>
-      [r.product.code, r.product.name, r.batch.display_code ?? "", r.warehouse_name, r.warehouse_code]
+      [r.product.code, r.product.name, r.batch.display_code ?? "",
+       r.warehouse_name, r.warehouse_code,
+       r.supplier_name, r.supplier_code,
+       r.account_name, r.account_code]
         .join(" ").toLowerCase().includes(q),
     );
   }, [rows, search]);
