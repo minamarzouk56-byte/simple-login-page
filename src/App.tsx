@@ -57,9 +57,9 @@ const App = () => (
               <Route path="/inventory/new-request/:type" element={<ProtectedRoute requirePermission="inventory.request"><InventoryNewRequestForm /></ProtectedRoute>} />
               <Route path="/inventory/requests" element={<ProtectedRoute requirePermission="inventory.view"><InventoryRequests /></ProtectedRoute>} />
               <Route path="/inventory/movements" element={<ProtectedRoute requirePermission="inventory.view"><InventoryMovements /></ProtectedRoute>} />
-              <Route path="/invoices/requests" element={<ProtectedRoute><InvoiceRequests /></ProtectedRoute>} />
-              <Route path="/invoices/sales" element={<ProtectedRoute><SalesInvoices /></ProtectedRoute>} />
-              <Route path="/invoices/purchases" element={<ProtectedRoute><PurchaseInvoices /></ProtectedRoute>} />
+              <Route path="/invoices/requests" element={<ProtectedRoute requirePermission="invoices.view"><InvoiceRequests /></ProtectedRoute>} />
+              <Route path="/invoices/sales" element={<ProtectedRoute requirePermission="invoices.view"><SalesInvoices /></ProtectedRoute>} />
+              <Route path="/invoices/purchases" element={<ProtectedRoute requirePermission="invoices.view"><PurchaseInvoices /></ProtectedRoute>} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

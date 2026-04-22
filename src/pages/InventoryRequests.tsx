@@ -16,7 +16,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
-  ClipboardCheck, Loader2, Search, X, Eye, Check, XCircle, PauseCircle, FileText,
+  ClipboardCheck, Loader2, Search, X, Eye, Check, XCircle, Receipt,
   ArrowUpFromLine, ArrowDownToLine, Undo2, Redo2,
 } from "lucide-react";
 import type {
@@ -24,6 +24,7 @@ import type {
 } from "@/lib/finhub-types";
 import { PERMIT_STATUS_LABELS_AR, PERMIT_TYPE_LABELS_AR } from "@/lib/finhub-types";
 import { fmtNumber, fmtDate } from "@/components/inventory/inventory-lib";
+import { SettlePermitDialog } from "@/components/invoices/SettlePermitDialog";
 
 interface AccountOpt { id: string; code: string; name: string; }
 interface ProfileOpt { user_id: string; full_name: string | null; }
@@ -55,6 +56,7 @@ const InventoryRequests = () => {
   const [viewingLines, setViewingLines] = useState<InventoryPermitLine[]>([]);
   const [reviewNotes, setReviewNotes] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const [settling, setSettling] = useState<InventoryPermit | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -209,9 +211,16 @@ const InventoryRequests = () => {
                             <Badge variant={STATUS_VARIANT[p.status]}>{PERMIT_STATUS_LABELS_AR[p.status]}</Badge>
                           </TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openView(p)}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openView(p)}>
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              {canApprove && p.status === "approved" && (
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" title="تسوية الطلب" onClick={() => setSettling(p)}>
+                                  <Receipt className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
@@ -303,6 +312,11 @@ const InventoryRequests = () => {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setViewing(null)}>إغلاق</Button>
+            {canApprove && viewing?.status === "approved" && (
+              <Button onClick={() => { setSettling(viewing); setViewing(null); }}>
+                <Receipt className="h-4 w-4" /> تسوية الطلب
+              </Button>
+            )}
             {canApprove && viewing?.status === "pending" && (
               <>
                 <Button variant="destructive" onClick={reject} disabled={actionLoading}>
@@ -318,6 +332,12 @@ const InventoryRequests = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <SettlePermitDialog
+        permit={settling}
+        onClose={() => setSettling(null)}
+        onSettled={load}
+      />
     </div>
   );
 };
