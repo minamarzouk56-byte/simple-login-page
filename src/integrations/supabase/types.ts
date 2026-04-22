@@ -905,6 +905,168 @@ export type Database = {
           },
         ]
       }
+      stock_request_allocations: {
+        Row: {
+          batch_id: string
+          created_at: string
+          id: string
+          quantity: number
+          request_line_id: string
+          unit_cost: number
+          unit_price: number | null
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          id?: string
+          quantity: number
+          request_line_id: string
+          unit_cost: number
+          unit_price?: number | null
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          id?: string
+          quantity?: number
+          request_line_id?: string
+          unit_cost?: number
+          unit_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_request_allocations_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_request_allocations_request_line_id_fkey"
+            columns: ["request_line_id"]
+            isOneToOne: false
+            referencedRelation: "stock_request_lines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_request_lines: {
+        Row: {
+          id: string
+          line_order: number
+          notes: string | null
+          product_id: string
+          quantity: number
+          request_id: string
+          unit_price: number | null
+        }
+        Insert: {
+          id?: string
+          line_order?: number
+          notes?: string | null
+          product_id: string
+          quantity: number
+          request_id: string
+          unit_price?: number | null
+        }
+        Update: {
+          id?: string
+          line_order?: number
+          notes?: string | null
+          product_id?: string
+          quantity?: number
+          request_id?: string
+          unit_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_request_lines_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_request_lines_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "stock_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_requests: {
+        Row: {
+          created_at: string
+          created_by: string
+          customer_id: string | null
+          id: string
+          journal_entry_id: string | null
+          notes: string | null
+          related_order_id: string | null
+          request_date: string
+          request_number: string
+          request_type: Database["public"]["Enums"]["stock_request_type"]
+          review_notes: string | null
+          settled_at: string | null
+          settled_by: string | null
+          status: Database["public"]["Enums"]["stock_request_status"]
+          supplier_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          customer_id?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          notes?: string | null
+          related_order_id?: string | null
+          request_date?: string
+          request_number: string
+          request_type: Database["public"]["Enums"]["stock_request_type"]
+          review_notes?: string | null
+          settled_at?: string | null
+          settled_by?: string | null
+          status?: Database["public"]["Enums"]["stock_request_status"]
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          customer_id?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          notes?: string | null
+          related_order_id?: string | null
+          request_date?: string
+          request_number?: string
+          request_type?: Database["public"]["Enums"]["stock_request_type"]
+          review_notes?: string | null
+          settled_at?: string | null
+          settled_by?: string | null
+          status?: Database["public"]["Enums"]["stock_request_status"]
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_requests_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_requests_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           account_id: string | null
@@ -1066,6 +1228,16 @@ export type Database = {
         }
         Returns: string
       }
+      create_stock_request: {
+        Args: {
+          _customer_id: string
+          _lines: Json
+          _notes: string
+          _request_type: Database["public"]["Enums"]["stock_request_type"]
+          _supplier_id: string
+        }
+        Returns: string
+      }
       has_permission: {
         Args: {
           _permission: Database["public"]["Enums"]["app_permission"]
@@ -1077,6 +1249,31 @@ export type Database = {
       reject_order: {
         Args: { _order_id: string; _review_notes?: string }
         Returns: undefined
+      }
+      reject_stock_request: {
+        Args: { _request_id: string; _review_notes?: string }
+        Returns: undefined
+      }
+      settle_add_request: {
+        Args: {
+          _line_costs: Json
+          _line_prices?: Json
+          _request_id: string
+          _warehouse_id: string
+        }
+        Returns: string
+      }
+      settle_issue_request: {
+        Args: { _allocations: Json; _line_prices: Json; _request_id: string }
+        Returns: string
+      }
+      settle_purchase_return_request: {
+        Args: { _allocations: Json; _request_id: string }
+        Returns: string
+      }
+      settle_sale_return_request: {
+        Args: { _allocations: Json; _line_prices: Json; _request_id: string }
+        Returns: string
       }
     }
     Enums: {
@@ -1129,6 +1326,8 @@ export type Database = {
         | "rejected"
         | "cancelled"
       order_type: "purchase" | "sale" | "sale_return" | "purchase_return"
+      stock_request_status: "pending" | "settled" | "rejected" | "cancelled"
+      stock_request_type: "add" | "issue" | "sale_return" | "purchase_return"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1307,6 +1506,8 @@ export const Constants = {
         "cancelled",
       ],
       order_type: ["purchase", "sale", "sale_return", "purchase_return"],
+      stock_request_status: ["pending", "settled", "rejected", "cancelled"],
+      stock_request_type: ["add", "issue", "sale_return", "purchase_return"],
     },
   },
 } as const
