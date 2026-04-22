@@ -17,9 +17,8 @@ import {
   Package,
   Boxes,
   ArrowLeftRight,
-  ShoppingCart,
-  ReceiptText,
-  Receipt,
+  ClipboardList,
+  ListChecks,
 } from "lucide-react";
 import type { AppPermission } from "@/lib/finhub-types";
 
@@ -64,13 +63,13 @@ const NAV_ITEMS: NavNode[] = [
     ],
   },
   {
-    label: "الطلبات والفواتير",
-    icon: Receipt,
-    prefix: "/orders",
-    anyPermission: ["invoices.view", "invoices.manage", "invoices.approve"],
+    label: "طلبات المخزون",
+    icon: ClipboardList,
+    prefix: "/stock-requests",
+    anyPermission: ["stock_requests.create", "stock_requests.view_own", "stock_requests.manage", "stock_requests.settle"],
     children: [
-      { to: "/orders/purchases", label: "طلبات الشراء", icon: ShoppingCart, anyPermission: ["invoices.view", "invoices.manage", "invoices.approve"] },
-      { to: "/orders/sales", label: "طلبات البيع", icon: ReceiptText, anyPermission: ["invoices.view", "invoices.manage", "invoices.approve"] },
+      { to: "/stock-requests", label: "طلبات إذن المخزون", icon: ClipboardList, anyPermission: ["stock_requests.create", "stock_requests.view_own"] },
+      { to: "/stock-requests/manage", label: "إدارة طلبات المخزون", icon: ListChecks, anyPermission: ["stock_requests.manage", "stock_requests.settle"] },
     ],
   },
   { to: "/reports", label: "التقارير المالية", icon: BarChart3, permission: "reports.view" },
@@ -86,8 +85,8 @@ const PAGE_TITLES: Record<string, string> = {
   "/products": "المنتجات",
   "/inventory": "إدارة المخزون",
   "/inventory/movements": "حركات المخزن",
-  "/orders/purchases": "طلبات الشراء",
-  "/orders/sales": "طلبات البيع",
+  "/stock-requests": "طلبات إذن المخزون",
+  "/stock-requests/manage": "إدارة طلبات المخزون",
   "/reports": "التقارير المالية",
   "/users": "المستخدمون والصلاحيات",
 };
