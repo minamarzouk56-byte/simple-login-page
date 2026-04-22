@@ -16,7 +16,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
-  ClipboardCheck, Loader2, Search, X, Eye, Check, XCircle, PauseCircle, FileText,
+  ClipboardCheck, Loader2, Search, X, Eye, Check, XCircle, Receipt,
   ArrowUpFromLine, ArrowDownToLine, Undo2, Redo2,
 } from "lucide-react";
 import type {
@@ -24,6 +24,7 @@ import type {
 } from "@/lib/finhub-types";
 import { PERMIT_STATUS_LABELS_AR, PERMIT_TYPE_LABELS_AR } from "@/lib/finhub-types";
 import { fmtNumber, fmtDate } from "@/components/inventory/inventory-lib";
+import { SettlePermitDialog } from "@/components/invoices/SettlePermitDialog";
 
 interface AccountOpt { id: string; code: string; name: string; }
 interface ProfileOpt { user_id: string; full_name: string | null; }
@@ -55,6 +56,7 @@ const InventoryRequests = () => {
   const [viewingLines, setViewingLines] = useState<InventoryPermitLine[]>([]);
   const [reviewNotes, setReviewNotes] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const [settling, setSettling] = useState<InventoryPermit | null>(null);
 
   const load = async () => {
     setLoading(true);
