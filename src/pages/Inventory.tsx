@@ -4,12 +4,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Boxes, Loader2, Search, X, AlertTriangle, Wallet, Layers } from "lucide-react";
+import { Boxes, Loader2, Search, X, AlertTriangle, Wallet, Layers, PackagePlus } from "lucide-react";
 import type { Product, Warehouse, Batch } from "@/lib/finhub-types";
 import { fmtNumber } from "@/lib/inventory-utils";
+import { AddStockDialog } from "@/components/inventory/AddStockDialog";
 
 interface ProductRow {
   product: Product;
@@ -24,6 +26,7 @@ const Inventory = () => {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<ProductRow[]>([]);
   const [search, setSearch] = useState("");
+  const [addOpen, setAddOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -36,9 +39,15 @@ const Inventory = () => {
     const warehouses = (w.data ?? []) as Warehouse[];
     const batches = (b.data ?? []) as Batch[];
     const whMap = new Map(warehouses.map((x) => [x.id, x.name]));
+    const prodMap = new Map(products.map((x) => [x.id, x]));
 
-    const result: ProductRow[] = products.map((prod) => {
-      const myBatches = batches.filter((bt) => bt.product_id === prod.id);
+    // فقط المنتجات اللي عندها batches بكميات > 0
+    const productIdsWithStock = new Set(batches.map((bt) => bt.product_id));
+
+    const result: ProductRow[] = [...productIdsWithStock].map((pid) => {
+      const prod = prodMap.get(pid);
+      if (!prod) return null;
+      const myBatches = batches.filter((bt) => bt.product_id === pid);
       const byWh = new Map<string, number>();
       let value = 0;
       myBatches.forEach((bt) => {
@@ -50,8 +59,9 @@ const Inventory = () => {
       }));
       const total = by_warehouse.reduce((s, x) => s + x.quantity, 0);
       return { product: prod, total, by_warehouse, batch_count: myBatches.length, value };
-    });
+    }).filter(Boolean) as ProductRow[];
 
+    result.sort((a, b) => a.product.code.localeCompare(b.product.code));
     setRows(result);
     setLoading(false);
   };
@@ -76,21 +86,27 @@ const Inventory = () => {
 
   return (
     <div className="space-y-6" dir="rtl">
-      <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-primary shadow-soft">
-          <Boxes className="h-6 w-6 text-primary-foreground" />
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-primary shadow-soft">
+            <Boxes className="h-6 w-6 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="font-display text-2xl font-bold">إدارة المخزون</h1>
+            <p className="text-sm text-muted-foreground">عرض الأرصدة والدُفعات في كل مخزن</p>
+          </div>
         </div>
-        <div>
-          <h1 className="font-display text-2xl font-bold">إدارة المخزون</h1>
-          <p className="text-sm text-muted-foreground">عرض الأرصدة والدُفعات في كل مخزن</p>
-        </div>
+        <Button onClick={() => setAddOpen(true)} className="gap-2">
+          <PackagePlus className="h-4 w-4" />
+          إضافة مخزون
+        </Button>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <div className="text-xs text-muted-foreground">عدد المنتجات</div>
+              <div className="text-xs text-muted-foreground">منتجات بها مخزون</div>
               <div className="text-2xl font-bold tabular-nums mt-1">{stats.total_products}</div>
             </div>
             <Boxes className="h-8 w-8 text-primary opacity-60" />
@@ -144,7 +160,11 @@ const Inventory = () => {
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="p-12 text-center text-muted-foreground">لا توجد بيانات مخزون</div>
+            <div className="p-12 text-center text-muted-foreground space-y-3">
+              <Boxes className="h-12 w-12 mx-auto opacity-30" />
+              <div>لا يوجد مخزون حتى الآن</div>
+              <div className="text-xs">اضغط "إضافة مخزون" لإنشاء أول دُفعة</div>
+            </div>
           ) : (
             <Table>
               <TableHeader>
@@ -168,9 +188,7 @@ const Inventory = () => {
                       <TableCell>{r.product.unit}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {r.by_warehouse.length === 0 ? (
-                            <span className="text-xs text-muted-foreground">لا يوجد</span>
-                          ) : r.by_warehouse.map((w) => (
+                          {r.by_warehouse.map((w) => (
                             <Badge key={w.warehouse_id} variant="outline" className="font-normal">
                               {fmtNumber(w.quantity)} في {w.warehouse_name}
                             </Badge>
@@ -191,6 +209,8 @@ const Inventory = () => {
           )}
         </CardContent>
       </Card>
+
+      <AddStockDialog open={addOpen} onClose={() => setAddOpen(false)} onSaved={load} />
     </div>
   );
 };
