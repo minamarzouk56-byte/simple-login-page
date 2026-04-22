@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -8,50 +8,29 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Boxes,
-  Plus,
-  Loader2,
-  Search,
-  X,
-  MoreHorizontal,
-  Pencil,
-  Trash2,
-  ArrowUp,
-  ArrowDown,
-  ArrowUpDown,
-  Warehouse as WarehouseIcon,
-  Tags,
-  AlertTriangle,
+  Boxes, Plus, Loader2, Search, X, MoreHorizontal, Pencil, Trash2,
+  ArrowUp, ArrowDown, ArrowUpDown, Warehouse as WarehouseIcon, Tags, AlertTriangle,
+  Settings2, FileSpreadsheet, FileDown, FileUp, FileText, CheckCircle2, Wallet, Filter,
 } from "lucide-react";
 import type { Warehouse, ItemCategory, InventoryItem } from "@/lib/finhub-types";
 import { ItemFormDialog } from "@/components/inventory/ItemFormDialog";
 import { WarehouseFormDialog } from "@/components/inventory/WarehouseFormDialog";
 import { CategoryFormDialog } from "@/components/inventory/CategoryFormDialog";
 import { fmtNumber, loadInventoryData, type ItemRow } from "@/components/inventory/inventory-lib";
+import {
+  exportItemsToExcel, downloadItemsTemplate, parseImportFile, importItems, exportItemsToPDF,
+} from "@/components/inventory/inventory-io";
 
 type SortKey = "code" | "name" | "category" | "unit" | "warehouse" | "cost" | "sale" | "qty" | "min";
 type SortDir = "asc" | "desc";
@@ -65,9 +44,17 @@ const InventoryItems = () => {
   const [rows, setRows] = useState<ItemRow[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [categories, setCategories] = useState<ItemCategory[]>([]);
+  const [accounts, setAccounts] = useState<{ id: string; code: string; name: string }[]>([]);
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("code");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  // Filters
+  const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [filterWarehouse, setFilterWarehouse] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterStock, setFilterStock] = useState<string>("all");
+  const [filterAccount, setFilterAccount] = useState<string>("all");
 
   const [itemFormOpen, setItemFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
@@ -81,6 +68,8 @@ const InventoryItems = () => {
   const [editingCat, setEditingCat] = useState<ItemCategory | null>(null);
   const [deletingCat, setDeletingCat] = useState<ItemCategory | null>(null);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const load = async () => {
     setLoading(true);
     try {
@@ -88,6 +77,7 @@ const InventoryItems = () => {
       setRows(data.rows);
       setWarehouses(data.warehouses);
       setCategories(data.categories);
+      setAccounts(data.accounts.map((a) => ({ id: a.id, code: a.code, name: a.name })));
     } catch (e) {
       toast({ title: "فشل التحميل", description: (e as Error).message, variant: "destructive" });
     }
@@ -105,38 +95,52 @@ const InventoryItems = () => {
           .join(" ").toLowerCase().includes(q),
       );
     }
+    if (filterCategory !== "all") arr = arr.filter((r) => r.category_id === filterCategory);
+    if (filterWarehouse !== "all") {
+      arr = arr.filter((r) =>
+        r.default_warehouse_id === filterWarehouse ||
+        r.per_warehouse.some((p) => p.warehouse_id === filterWarehouse),
+      );
+    }
+    if (filterStatus !== "all") arr = arr.filter((r) => (filterStatus === "active" ? r.is_active : !r.is_active));
+    if (filterStock === "low") arr = arr.filter((r) => r.min_stock > 0 && r.total_quantity <= r.min_stock);
+    if (filterStock === "ok") arr = arr.filter((r) => r.min_stock === 0 || r.total_quantity > r.min_stock);
+    if (filterAccount !== "all") arr = arr.filter((r) => r.account_id === filterAccount);
+
     const sorted = [...arr].sort((a, b) => {
-      const va: string | number = (() => {
+      const get = (r: ItemRow): string | number => {
         switch (sortKey) {
-          case "code": return a.code;
-          case "name": return a.name;
-          case "category": return a.category_name ?? "";
-          case "unit": return a.unit;
-          case "warehouse": return a.default_warehouse_name ?? "";
-          case "cost": return a.cost_price;
-          case "sale": return a.sale_price;
-          case "qty": return a.total_quantity;
-          case "min": return a.min_stock;
+          case "code": return r.code;
+          case "name": return r.name;
+          case "category": return r.category_name ?? "";
+          case "unit": return r.unit;
+          case "warehouse": return r.default_warehouse_name ?? "";
+          case "cost": return r.cost_price;
+          case "sale": return r.sale_price;
+          case "qty": return r.total_quantity;
+          case "min": return r.min_stock;
         }
-      })();
-      const vb: string | number = (() => {
-        switch (sortKey) {
-          case "code": return b.code;
-          case "name": return b.name;
-          case "category": return b.category_name ?? "";
-          case "unit": return b.unit;
-          case "warehouse": return b.default_warehouse_name ?? "";
-          case "cost": return b.cost_price;
-          case "sale": return b.sale_price;
-          case "qty": return b.total_quantity;
-          case "min": return b.min_stock;
-        }
-      })();
+      };
+      const va = get(a), vb = get(b);
       const cmp = typeof va === "number" && typeof vb === "number" ? va - vb : String(va).localeCompare(String(vb), "ar");
       return sortDir === "asc" ? cmp : -cmp;
     });
     return sorted;
-  }, [rows, search, sortKey, sortDir]);
+  }, [rows, search, sortKey, sortDir, filterCategory, filterWarehouse, filterStatus, filterStock, filterAccount]);
+
+  const stats = useMemo(() => {
+    const total = rows.length;
+    const active = rows.filter((r) => r.is_active).length;
+    const low = rows.filter((r) => r.min_stock > 0 && r.total_quantity <= r.min_stock).length;
+    const value = rows.reduce((sum, r) => sum + r.total_quantity * r.cost_price, 0);
+    return { total, active, low, value };
+  }, [rows]);
+
+  const hasFilters = filterCategory !== "all" || filterWarehouse !== "all" || filterStatus !== "all" || filterStock !== "all" || filterAccount !== "all";
+  const resetFilters = () => {
+    setFilterCategory("all"); setFilterWarehouse("all");
+    setFilterStatus("all"); setFilterStock("all"); setFilterAccount("all");
+  };
 
   const toggleSort = (k: SortKey) => {
     if (sortKey === k) setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -171,9 +175,23 @@ const InventoryItems = () => {
     load();
   };
 
+  const handleImport = async (file: File) => {
+    try {
+      const parsed = await parseImportFile(file);
+      const catMap = new Map(categories.map((c) => [c.name, c.id]));
+      const whMap = new Map(warehouses.map((w) => [w.name, w.id]));
+      const accMap = new Map(accounts.map((a) => [a.code, a.id]));
+      const count = await importItems(parsed, catMap, whMap, accMap);
+      toast({ title: `تم استيراد ${count} صنف` });
+      load();
+    } catch (e) {
+      toast({ title: "فشل الاستيراد", description: (e as Error).message, variant: "destructive" });
+    }
+  };
+
   return (
     <div className="space-y-6" dir="rtl">
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-primary shadow-soft">
             <Boxes className="h-6 w-6 text-primary-foreground" />
@@ -194,6 +212,47 @@ const InventoryItems = () => {
 
         {/* === Items === */}
         <TabsContent value="items" className="space-y-4">
+          {/* Stats */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+              <CardContent className="p-4 flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-muted-foreground">إجمالي الأصناف</div>
+                  <div className="text-2xl font-bold tabular-nums mt-1">{stats.total}</div>
+                </div>
+                <Boxes className="h-8 w-8 text-primary opacity-60" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-muted-foreground">أصناف نشطة</div>
+                  <div className="text-2xl font-bold tabular-nums mt-1 text-green-600 dark:text-green-400">{stats.active}</div>
+                </div>
+                <CheckCircle2 className="h-8 w-8 text-green-600/60 dark:text-green-400/60" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-muted-foreground">مخزون منخفض</div>
+                  <div className="text-2xl font-bold tabular-nums mt-1 text-destructive">{stats.low}</div>
+                </div>
+                <AlertTriangle className="h-8 w-8 text-destructive/60" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-muted-foreground">إجمالي قيمة المخزون</div>
+                  <div className="text-xl font-bold tabular-nums mt-1">{fmtNumber(stats.value)}</div>
+                </div>
+                <Wallet className="h-8 w-8 text-primary opacity-60" />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Toolbar */}
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative flex-1 min-w-[240px]">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -214,14 +273,105 @@ const InventoryItems = () => {
                 <Plus className="h-4 w-4" />صنف جديد
               </Button>
             )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <Settings2 className="h-4 w-4" />العمليات
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem onClick={() => exportItemsToExcel(filtered)}>
+                  <FileSpreadsheet className="h-4 w-4 ml-2" />تصدير Excel
+                </DropdownMenuItem>
+                {canManage && (
+                  <>
+                    <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                      <FileUp className="h-4 w-4 ml-2" />استيراد Excel
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={downloadItemsTemplate}>
+                      <FileDown className="h-4 w-4 ml-2" />تحميل قالب Excel
+                    </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => exportItemsToPDF(filtered)}>
+                  <FileText className="h-4 w-4 ml-2" />تصدير PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleImport(f);
+                e.target.value = "";
+              }}
+            />
           </div>
+
+          {/* Filters */}
+          <Card>
+            <CardContent className="p-3 flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground px-2">
+                <Filter className="h-4 w-4" />الفلاتر:
+              </div>
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger className="w-[180px] h-9"><SelectValue placeholder="الفئة" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">كل الفئات</SelectItem>
+                  {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={filterWarehouse} onValueChange={setFilterWarehouse}>
+                <SelectTrigger className="w-[180px] h-9"><SelectValue placeholder="المخزن" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">كل المخازن</SelectItem>
+                  {warehouses.map((w) => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-[140px] h-9"><SelectValue placeholder="الحالة" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">كل الحالات</SelectItem>
+                  <SelectItem value="active">نشط فقط</SelectItem>
+                  <SelectItem value="inactive">غير نشط</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filterStock} onValueChange={setFilterStock}>
+                <SelectTrigger className="w-[160px] h-9"><SelectValue placeholder="مستوى المخزون" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">كل المستويات</SelectItem>
+                  <SelectItem value="low">مخزون منخفض</SelectItem>
+                  <SelectItem value="ok">مخزون كافٍ</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filterAccount} onValueChange={setFilterAccount}>
+                <SelectTrigger className="w-[200px] h-9"><SelectValue placeholder="الحساب المرتبط" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">كل الحسابات</SelectItem>
+                  {accounts.map((a) => <SelectItem key={a.id} value={a.id}>{a.code} - {a.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {hasFilters && (
+                <Button variant="ghost" size="sm" onClick={resetFilters}>
+                  <X className="h-4 w-4" />مسح الفلاتر
+                </Button>
+              )}
+              <div className="ms-auto text-xs text-muted-foreground tabular-nums">
+                النتائج: {filtered.length}
+              </div>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardContent className="p-0">
               {loading ? (
                 <div className="flex items-center justify-center p-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
               ) : filtered.length === 0 ? (
-                <div className="p-12 text-center text-muted-foreground">لا توجد أصناف</div>
+                <div className="p-12 text-center text-muted-foreground">لا توجد أصناف مطابقة</div>
               ) : (
                 <Table>
                   <TableHeader>
