@@ -16,8 +16,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
-  ClipboardCheck, Loader2, Search, X, Eye, Check, XCircle,
-  ArrowUpFromLine, ArrowDownToLine,
+  ClipboardCheck, Loader2, Search, X, Eye, Check, XCircle, PauseCircle, FileText,
+  ArrowUpFromLine, ArrowDownToLine, Undo2, Redo2,
 } from "lucide-react";
 import type {
   InventoryPermit, InventoryPermitLine, InventoryItem, Warehouse, PermitStatus,
