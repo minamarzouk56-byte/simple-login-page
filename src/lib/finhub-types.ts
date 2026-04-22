@@ -301,6 +301,56 @@ export interface StockMovement {
   created_by: string | null;
 }
 
+export interface InvoiceRequest {
+  id: string;
+  request_number: string;
+  invoice_type: InvoiceType;
+  request_date: string;
+  permit_id: string | null;
+  warehouse_id: string;
+  customer_id: string | null;
+  supplier_id: string | null;
+  counterparty_account_id: string;
+  subtotal: number;
+  tax_percent: number;
+  tax_amount: number;
+  discount_amount: number;
+  total_amount: number;
+  status: InvoiceRequestStatus;
+  notes: string | null;
+  review_notes: string | null;
+  invoice_id: string | null;
+  created_by: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Invoice {
+  id: string;
+  invoice_number: string;
+  invoice_type: InvoiceType;
+  invoice_date: string;
+  request_id: string | null;
+  permit_id: string | null;
+  warehouse_id: string;
+  customer_id: string | null;
+  supplier_id: string | null;
+  counterparty_account_id: string;
+  subtotal: number;
+  tax_percent: number;
+  tax_amount: number;
+  discount_amount: number;
+  total_amount: number;
+  status: InvoiceStatus;
+  notes: string | null;
+  journal_entry_id: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export const ACCOUNT_TYPE_LABELS_AR: Record<AccountType, string> = {
   asset: "أصول",
   liability: "خصوم",
