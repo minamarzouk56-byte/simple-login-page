@@ -1332,6 +1332,25 @@ export type Database = {
         Args: { _permit_id: string; _review_notes?: string }
         Returns: string
       }
+      confirm_invoice_request: {
+        Args: {
+          _discount_amount?: number
+          _notes?: string
+          _request_id: string
+          _tax_percent?: number
+        }
+        Returns: string
+      }
+      create_invoice_request_from_permit: {
+        Args: {
+          _discount_amount?: number
+          _line_prices?: Json
+          _notes?: string
+          _permit_id: string
+          _tax_percent?: number
+        }
+        Returns: string
+      }
       has_permission: {
         Args: {
           _permission: Database["public"]["Enums"]["app_permission"]
@@ -1339,9 +1358,21 @@ export type Database = {
         }
         Returns: boolean
       }
+      hold_inventory_permit: {
+        Args: { _permit_id: string; _review_notes?: string }
+        Returns: undefined
+      }
+      hold_invoice_request: {
+        Args: { _request_id: string; _review_notes?: string }
+        Returns: undefined
+      }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       reject_inventory_permit: {
         Args: { _permit_id: string; _review_notes?: string }
+        Returns: undefined
+      }
+      reject_invoice_request: {
+        Args: { _request_id: string; _review_notes?: string }
         Returns: undefined
       }
     }
